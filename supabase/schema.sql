@@ -138,3 +138,22 @@ create policy "Admin insert activity logs" on public.activity_logs
 for insert to authenticated with check (public.is_admin() and actor_id = (select auth.uid()));
 grant select, insert on public.activity_logs to authenticated;
 grant select, update on public.messages to authenticated;
+
+
+-- AZ Blog publishing
+create table if not exists public.blog_posts (
+ id uuid primary key default gen_random_uuid(),
+ title text not null check(char_length(title) between 2 and 140),
+ summary text not null check(char_length(summary) between 5 and 300),
+ body text not null check(char_length(body) between 10 and 10000),
+ published boolean not null default true,
+ created_at timestamptz not null default now(),
+ updated_at timestamptz not null default now()
+);
+alter table public.blog_posts enable row level security;
+drop policy if exists "Public read published blog" on public.blog_posts;
+create policy "Public read published blog" on public.blog_posts for select to anon,authenticated using(published or public.is_admin());
+drop policy if exists "Admin manage blog" on public.blog_posts;
+create policy "Admin manage blog" on public.blog_posts for all to authenticated using(public.is_admin()) with check(public.is_admin());
+grant select on public.blog_posts to anon,authenticated;
+grant insert,update,delete on public.blog_posts to authenticated;
