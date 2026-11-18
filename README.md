@@ -1,21 +1,21 @@
-# Developer Aziz — Portfolio
+# Developer Aziz
+Responsive black/red developer portfolio with Supabase Auth, PostgreSQL, Row Level Security and an admin workspace.
 
-A responsive Black & Red Gaming personal portfolio built with HTML, CSS and JavaScript.
+## Setup
+1. Create a Supabase project.
+2. In Supabase SQL Editor, run `supabase/schema.sql`.
+3. In Supabase Authentication > Users, create your administrator user (use a strong unique password).
+4. Copy the user's UUID and run this SQL in the SQL Editor:
+   `insert into public.user_roles(user_id,role) values('YOUR_USER_UUID','admin');`
+5. Copy the project URL and anon/publishable key from Supabase Project Settings > API.
+6. Put them in `assets/js/config.js`. Only the anon/publishable key belongs in browser code. Never expose service_role or secret keys.
+7. Commit and push to GitHub. Enable GitHub Pages from main / root.
 
-## Publish with GitHub Pages
-1. Open **Settings → Pages**.
-2. Under **Build and deployment**, choose **Deploy from a branch**.
-3. Select branch `main` and folder `/ (root)`, then Save.
-4. After publishing, the site will be available at:
-   https://azyzz-shope.github.io/developer-aziz/
-
-## Demo dashboard
-- Username: `aziz`
-- Password: `aziz-demo`
-
-**Important:** This is a front-end demo only. Credentials and dashboard code are visible in the page source; localStorage changes stay in the current browser. Do not use this for private information or real administration. For secure authentication and shared admin data, connect a backend/auth provider such as Supabase or Firebase and enforce authorization server-side.
-
-## Customize
-- Replace `hello@example.com` with your public contact email.
-- Update the sample projects and skills in `index.html`.
-- Edit the CSS variables near the top to adjust colors.
+## Security notes
+- RLS protects profile updates, project management and message inbox access.
+- Public visitors can only read portfolio content and submit contact messages.
+- Admin authorization is checked against the protected user_roles table.
+- Use a strong password and enable MFA in Supabase.
+- Configure Auth URL allow-list for your deployed GitHub Pages URL.
+- Add CAPTCHA / rate limiting for the public contact form before relying on it in production.
+- Static hosting + Supabase is a serverless architecture; no privileged secret is stored in the browser.
