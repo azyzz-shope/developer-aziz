@@ -289,7 +289,7 @@ function startInboxUpdates(){
   stopInboxUpdates();
   inboxChannel=db.channel("az-control-inbox").on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},payload=>{
     const m=payload.new;if(!m)return;
-    if(!messagesCache.some(x=>x.id===m.id)){messagesCache.unshift(m);renderMessages(messagesCache);$("messageCount").textContent=messagesCache.length+" MESSAGES";$("statMessages").textContent=messagesCache.length;updateUnreadCount();notifyNewMessage(m);}
+    if(!messagesCache.some(x=>x.id===m.id)){messagesCache.unshift(m);renderMessages(messagesCache);renderContacts(messagesCache);$("messageCount").textContent=messagesCache.length+" MESSAGES";$("statMessages").textContent=messagesCache.length;updateUnreadCount();notifyNewMessage(m);}
   }).subscribe();
   inboxPoll=window.setInterval(async()=>{
     if($("adminPanel").hidden)return;
@@ -297,7 +297,7 @@ function startInboxUpdates(){
     if(error)return;
     const known=new Set(messagesCache.map(m=>m.id));
     const fresh=(data||[]).filter(m=>!known.has(m.id));
-    if(fresh.length){messagesCache=data||[];renderMessages(messagesCache);$("messageCount").textContent=messagesCache.length+" MESSAGES";$("statMessages").textContent=messagesCache.length;updateUnreadCount();fresh.forEach(notifyNewMessage);}
+    if(fresh.length){messagesCache=data||[];renderMessages(messagesCache);renderContacts(messagesCache);$("messageCount").textContent=messagesCache.length+" MESSAGES";$("statMessages").textContent=messagesCache.length;updateUnreadCount();fresh.forEach(notifyNewMessage);}
   },30000);
 }
 function stopInboxUpdates(){
