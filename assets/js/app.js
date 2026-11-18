@@ -1,6 +1,8 @@
 (() => {
 const $ = id => document.getElementById(id);
-let db = null, projectsCache = [], messagesCache = [], currentImageUrl = null, inboxChannel = null, inboxPoll = null;\nconst LAST_READ_KEY = "az_control_messages_last_read";\nlet lastReadAt = localStorage.getItem(LAST_READ_KEY) || "";
+let db = null, projectsCache = [], messagesCache = [], currentImageUrl = null, inboxChannel = null, inboxPoll = null;
+const LAST_READ_KEY = "az_control_messages_last_read";
+let lastReadAt = localStorage.getItem(LAST_READ_KEY) || "";
 const say = (id, message, bad = false) => {
   const el = $(id); if (!el) return;
   el.textContent = message; el.classList.toggle("error", !!bad);
