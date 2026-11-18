@@ -250,6 +250,7 @@ function stopInboxUpdates(){
   if(inboxPoll){clearInterval(inboxPoll);inboxPoll=null;}
   if(inboxChannel&&db){db.removeChannel(inboxChannel);inboxChannel=null;}
 }
-\n$("logoutButton").addEventListener("click",async()=>{await db.auth.signOut();hideAdmin();});
+
+$("logoutButton").addEventListener("click",async()=>{await db.auth.signOut();hideAdmin();});
 init();
 })();
