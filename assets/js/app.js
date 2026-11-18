@@ -67,7 +67,7 @@ $("contactForm").addEventListener("submit", async e => {
   setBusy(button,true,"Sending…");
   const {error}=await db.from("messages").insert(row);
   setBusy(button,false,"Send message ↗");
-  if(error)return say("contactStatus","Message could not be sent. Please try again later.",true);
+  if(error){console.error("Contact submission failed:",error);return say("contactStatus","Message could not be sent: "+(error.message||"Please try again later."),true);}
   form.reset(); say("contactStatus","Message sent successfully. Thank you!");
 });
 function openLogin(){ $("adminModal").hidden=false; $("loginStatus").textContent=""; $("loginEmail").focus(); }
