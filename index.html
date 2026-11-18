@@ -9,7 +9,7 @@
 <meta property="og:description" content="Build. Create. Innovate.">
 <title>Developer Aziz | Portfolio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="assets/css/style.css?v=20261118-4">
+<link rel="stylesheet" href="assets/css/style.css?v=20261118-9">
 </head>
 <body>
 <div id="site">
@@ -17,7 +17,7 @@
 <a class="brand" href="#home">DEVELOPER <b>AZIZ.</b></a>
 <nav aria-label="Main navigation">
 <a href="#about">About</a><a href="#skills">Skills</a><a href="#projects">Projects</a><a href="#contact">Contact</a>
-<button id="openLogin" class="admin-trigger" type="button">Admin ↗</button>
+<button id="languageToggle" class="language-toggle" type="button" aria-label="Change language">العربية</button><button id="openLogin" class="admin-trigger" type="button">Admin ↗</button>
 </nav>
 </header>
 <main id="home">
@@ -70,7 +70,7 @@
 </div>
 
 <section id="adminPanel" class="admin-shell" hidden>
-<header class="admin-top"><a class="brand" href="#">AZ <b>CONTROL.</b></a><div class="admin-top-right"><span class="admin-secure"><i></i> ADMIN SESSION</span><button id="logoutButton" class="btn btn-ghost" type="button">Sign out ↗</button></div></header>
+<header class="admin-top"><a class="brand" href="#">AZ <b>CONTROL.</b></a><div class="admin-top-right"><button id="adminLanguageToggle" class="language-toggle" type="button">العربية</button><span class="admin-secure"><i></i> ADMIN SESSION</span><button id="logoutButton" class="btn btn-ghost" type="button">Sign out ↗</button></div></header>
 <div class="admin-main">
 <div class="admin-welcome"><div><div class="section-kicker">DEVELOPER AZIZ / CONTROL CENTER</div><h1>Dashboard<span>.</span></h1><p class="muted">Manage your portfolio content from one place.</p></div><button id="refreshAdmin" class="btn btn-ghost" type="button">↻ Refresh data</button></div>
 <div id="adminStatus" class="admin-status" role="status" aria-live="polite"></div>
@@ -129,6 +129,6 @@
 </section>
 <div id="connectionNotice" hidden>Supabase is not configured. Check the public project URL and publishable key.</div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="assets/js/config.js?v=20261118-8"></script>
-<script src="assets/js/app.js?v=20261118-8"></script>
+<script src="assets/js/config.js?v=20261118-9"></script>
+<script src="assets/js/app.js?v=20261118-9"></script>
 </body></html>
