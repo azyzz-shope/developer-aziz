@@ -62,7 +62,7 @@ async function init() {
   });
 }
 async function loadPublic() {
-  const [profileRes, projectsRes] = await Promise.all([
+  const [profileRes, projectsRes, blogRes] = await Promise.all([
     db.from("profiles").select("*").eq("id",1).maybeSingle(),
     db.from("projects").select("*").order("sort_order",{ascending:true}).order("created_at",{ascending:false})
   ]);
@@ -75,13 +75,36 @@ async function loadPublic() {
     $("displayLocation").textContent = (p.location || "QATAR").toUpperCase();
     if (p.headline) document.querySelector(".hero h1").setAttribute("aria-label", p.headline);
   }
-  renderPublicProjects(projectsRes.data || []);translatePage();
+  renderPublicProjects(projectsRes.data || []);renderPublicBlog(blogRes.data||[]);translatePage();
 }
 async function recordPageView() {
   try { const {error}=await db.rpc("record_page_view"); if(error) console.warn("Visit counter:",error.message); }
   catch(error) { console.warn("Visit counter unavailable",error); }
 }
-function renderPublicProjects(items) {
+
+function renderPublicBlog(items){
+ const root=$("publicBlog");if(!root)return;root.replaceChildren();
+ if(!items.length){const p=document.createElement("p");p.className="muted";p.textContent="No articles published yet.";root.append(p);return;}
+ items.forEach(post=>{const card=document.createElement("article");card.className="blog-card";const date=document.createElement("div");date.className="blog-date";date.textContent=new Date(post.created_at).toLocaleDateString();const title=document.createElement("h3");title.textContent=post.title;const summary=document.createElement("p");summary.textContent=post.summary;const body=document.createElement("details");const summaryEl=document.createElement("summary");summaryEl.textContent="Read article";const content=document.createElement("p");content.textContent=post.body;body.append(summaryEl,content);card.append(date,title,summary,body);root.append(card);});
+}
+function renderAdminBlog(items){
+ const root=$("adminBlogList");if(!root)return;root.replaceChildren();
+ items.forEach(post=>{const row=document.createElement("div");row.className="blog-admin-row";const title=document.createElement("span");title.textContent=post.title;const actions=document.createElement("div");actions.className="row-actions";const edit=document.createElement("button");edit.className="small-action";edit.textContent="Edit";edit.addEventListener("click",()=>{$("blogEditId").value=post.id;$("blogTitle").value=post.title;$("blogSummary").value=post.summary;$("blogBody").value=post.body;$("blogTitle").focus();});const del=document.createElement("button");del.className="small-action danger";del.textContent="Delete";del.addEventListener("click",async()=>{if(!confirm("Delete this article?"))return;const {error}=await db.from("blog_posts").delete().eq("id",post.id);if(error)return say("adminStatus",error.message,true);await logActivity("blog_deleted",post.title);await loadAdmin();await loadPublic();});actions.append(edit,del);row.append(title,actions);root.append(row);});
+}
+$("blogForm").addEventListener("submit",async e=>{
+ e.preventDefault();const id=$("blogEditId").value;const row={title:$("blogTitle").value.trim(),summary:$("blogSummary").value.trim(),body:$("blogBody").value.trim(),published:true,updated_at:new Date().toISOString()};
+ const {error}=id?await db.from("blog_posts").update(row).eq("id",id):await db.from("blog_posts").insert(row);
+ if(error)return say("adminStatus","Blog save failed: "+error.message,true);
+ $("blogForm").reset();$("blogEditId").value="";await logActivity(id?"blog_updated":"blog_created",row.title);say("adminStatus","Article published.");await loadAdmin();await loadPublic();
+});
+function runTerminal(command){
+ const output=$("terminalOutput");const c=command.trim().toLowerCase();const responses={help:"Available commands: help, about, skills, projects, contact, clear",about:"Developer Aziz — portfolio focused on web development, programming and defensive cybersecurity.",skills:"Web development • Python fundamentals • Cybersecurity principles • Linux • Git/GitHub",projects:"Scroll to the Projects section to explore published work.",contact:"Use the public contact form. No account is required.",clear:""};
+ if(c==="clear"){output.textContent="AZ TERMINAL CLEARED.";return;}
+ output.textContent+="\n> "+command+"\n"+(responses[c]||"Command not found. Type help to list safe commands.");
+ output.scrollTop=output.scrollHeight;
+}
+$("terminalForm").addEventListener("submit",e=>{e.preventDefault();const input=$("terminalInput");if(input.value.trim())runTerminal(input.value);input.value="";});
+\nfunction renderPublicProjects(items) {
   const root = $("projectGrid"); root.replaceChildren();
   if (!items.length) { const p=document.createElement("p"); p.className="muted"; p.textContent="Projects will appear here soon."; root.append(p); return; }
   items.forEach(p => {
@@ -132,7 +155,7 @@ async function adminAccess(user) {
 function hideAdmin(){ $("adminPanel").hidden=true; $("site").hidden=false; stopInboxUpdates(); }
 async function loadAdmin(){
   say("adminStatus","Loading dashboard…");
-  const [profileRes,projectRes,messageRes,viewsRes,activityRes]=await Promise.all([
+  const [profileRes,projectRes,messageRes,viewsRes,activityRes,blogRes]=await Promise.all([
     db.from("profiles").select("*").eq("id",1).maybeSingle(),
     db.from("projects").select("*").order("sort_order",{ascending:true}).order("created_at",{ascending:false}),
     db.from("messages").select("*").order("created_at",{ascending:false}).limit(100),
@@ -153,7 +176,7 @@ async function loadAdmin(){
   $("statVisits").textContent=viewsRes.error?"—":(total.toLocaleString()+(days.length===7?" · 7d":""));
   renderVisitChart(days);
   $("messageCount").textContent=messagesCache.length+" MESSAGES";
-  renderAdminProjects(projectsCache);renderMessages(messagesCache);renderContacts(messagesCache);renderActivity(activityRes.data||[]);translatePage();
+  renderAdminProjects(projectsCache);renderMessages(messagesCache);renderContacts(messagesCache);renderActivity(activityRes.data||[]);renderAdminBlog(blogRes.data||[]);translatePage();
   if(activityRes.error)console.warn("Activity log unavailable:",activityRes.error.message);
   if(!errors.length)say("adminStatus","Dashboard is up to date.");
 }
