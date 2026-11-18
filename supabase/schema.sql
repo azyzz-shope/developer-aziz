@@ -57,3 +57,28 @@ create policy "Admin delete project media" on storage.objects for delete to auth
 
 -- Create your user under Authentication > Users, copy its UUID, then run:
 -- insert into public.user_roles(user_id,role) values('YOUR_USER_UUID','admin');
+
+
+-- Privacy-friendly daily page-view analytics.
+create table if not exists public.page_views (
+  view_date date primary key default current_date,
+  views bigint not null default 0 check (views >= 0)
+);
+alter table public.page_views enable row level security;
+drop policy if exists "Admin read page views" on public.page_views;
+create policy "Admin read page views" on public.page_views
+for select to authenticated using (public.is_admin());
+
+create or replace function public.record_page_view()
+returns void
+language sql
+security definer
+set search_path = ''
+as $$
+  insert into public.page_views(view_date, views)
+  values (current_date, 1)
+  on conflict (view_date)
+  do update set views = public.page_views.views + 1;
+$$;
+revoke all on function public.record_page_view() from public;
+grant execute on function public.record_page_view() to anon, authenticated;
