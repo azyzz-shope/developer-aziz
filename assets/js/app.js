@@ -47,7 +47,8 @@ const ready = () => window.AZ_SUPABASE_URL && !window.AZ_SUPABASE_URL.startsWith
 const safeExternal = value => { try { const u = new URL(value); return ["https:","http:"].includes(u.protocol) ? u.href : null; } catch { return null; } };
 const escapeText = value => String(value ?? "");
 function setBusy(button, busy, text) { if (!button) return; button.disabled = busy; if (text) button.textContent = text; }
-async function init() {\n  translatePage();
+async function init() {
+  translatePage();
   $("year").textContent = new Date().getFullYear();
   $("heroYear").textContent = new Date().getFullYear();
   if (!ready() || !window.supabase) { $("connectionNotice").hidden = false; return; }
