@@ -90,6 +90,7 @@ async function adminAccess(user) {
   if(error || role?.role!=="admin"){await db.auth.signOut();$("adminModal").hidden=false;return say("loginStatus","This account does not have administrator access.",true);}
   $("adminModal").hidden=true;$("site").hidden=true;$("adminPanel").hidden=false;
   await loadAdmin();
+  startInboxUpdates();
 }
 function hideAdmin(){ $("adminPanel").hidden=true; $("site").hidden=false; stopInboxUpdates(); }
 async function loadAdmin(){
