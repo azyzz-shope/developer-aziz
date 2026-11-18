@@ -14,6 +14,7 @@ async function init() {
   $("heroYear").textContent = new Date().getFullYear();
   if (!ready() || !window.supabase) { $("connectionNotice").hidden = false; return; }
   db = window.supabase.createClient(window.AZ_SUPABASE_URL, window.AZ_SUPABASE_ANON_KEY, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  await recordPageView();
   await loadPublic();
   const {data:{session}} = await db.auth.getSession();
   if (session) await adminAccess(session.user);
@@ -36,6 +37,10 @@ async function loadPublic() {
     if (p.headline) document.querySelector(".hero h1").setAttribute("aria-label", p.headline);
   }
   renderPublicProjects(projectsRes.data || []);
+}
+async function recordPageView() {
+  try { const {error}=await db.rpc("record_page_view"); if(error) console.warn("Visit counter:",error.message); }
+  catch(error) { console.warn("Visit counter unavailable",error); }
 }
 function renderPublicProjects(items) {
   const root = $("projectGrid"); root.replaceChildren();
@@ -87,18 +92,25 @@ async function adminAccess(user) {
 function hideAdmin(){ $("adminPanel").hidden=true; $("site").hidden=false; }
 async function loadAdmin(){
   say("adminStatus","Loading dashboard…");
-  const [profileRes,projectRes,messageRes]=await Promise.all([
+  const [profileRes,projectRes,messageRes,viewsRes]=await Promise.all([
     db.from("profiles").select("*").eq("id",1).maybeSingle(),
     db.from("projects").select("*").order("sort_order",{ascending:true}).order("created_at",{ascending:false}),
-    db.from("messages").select("*").order("created_at",{ascending:false}).limit(100)
+    db.from("messages").select("*").order("created_at",{ascending:false}).limit(100),
+    db.from("page_views").select("view_date,views").order("view_date",{ascending:false}).limit(7)
   ]);
   const errors=[profileRes.error,projectRes.error,messageRes.error].filter(Boolean);
+  if(viewsRes.error) console.warn("Analytics unavailable:",viewsRes.error.message);
   if(errors.length){say("adminStatus","Some dashboard data could not be loaded: "+errors[0].message,true);}
   if(profileRes.data){const p=profileRes.data;$("editName").value=p.display_name||"";$("editHeadline").value=p.headline||"";$("editAbout").value=p.about||"";$("editLocation").value=p.location||"";$("editEmail").value=p.contact_email||"";}
   projectsCache=projectRes.data||[];messagesCache=messageRes.data||[];
   $("statProjects").textContent=projectsCache.length;
   $("statMessages").textContent=messagesCache.length;
   $("statFeatured").textContent=projectsCache.filter(p=>p.featured).length;
+  const days=(viewsRes.data||[]).slice().reverse();
+  const total=days.reduce((sum,d)=>sum+Number(d.views||0),0);
+  $("statVisitsWeek").textContent=total.toLocaleString();
+  $("statVisits").textContent=viewsRes.error?"—":(total.toLocaleString()+(days.length===7?" · 7d":""));
+  renderVisitChart(days);
   $("messageCount").textContent=messagesCache.length+" MESSAGES";
   renderAdminProjects(projectsCache);renderMessages(messagesCache);
   if(!errors.length)say("adminStatus","Dashboard is up to date.");
@@ -166,6 +178,19 @@ $("projectSearch").addEventListener("input",e=>{
   const q=e.target.value.trim().toLowerCase();
   renderAdminProjects(projectsCache.filter(p=>(p.title+" "+p.description+" "+p.category).toLowerCase().includes(q)));
 });
+function renderVisitChart(days){
+  const root=$("visitChart"); if(!root)return; root.replaceChildren();
+  if(!days.length){const p=document.createElement("p");p.className="muted";p.textContent="No visit data yet. Run the analytics SQL setup to enable counting.";root.append(p);return;}
+  const max=Math.max(1,...days.map(d=>Number(d.views||0)));
+  days.forEach(d=>{
+    const item=document.createElement("div");item.className="visit-day";
+    const count=document.createElement("b");count.textContent=Number(d.views||0).toLocaleString();
+    const track=document.createElement("div");track.className="visit-track";
+    const bar=document.createElement("span");bar.style.width=(Number(d.views||0)/max*100)+"%";track.append(bar);
+    const label=document.createElement("small");label.textContent=new Date(d.view_date+"T12:00:00").toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
+    item.append(count,track,label);root.append(item);
+  });
+}
 function renderMessages(items){
   const root=$("adminMessages");root.replaceChildren();
   if(!items.length){const p=document.createElement("p");p.className="muted";p.textContent="Your inbox is empty.";root.append(p);return;}
