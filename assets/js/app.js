@@ -104,7 +104,8 @@ function runTerminal(command){
  output.scrollTop=output.scrollHeight;
 }
 $("terminalForm").addEventListener("submit",e=>{e.preventDefault();const input=$("terminalInput");if(input.value.trim())runTerminal(input.value);input.value="";});
-\nfunction renderPublicProjects(items) {
+
+function renderPublicProjects(items) {
   const root = $("projectGrid"); root.replaceChildren();
   if (!items.length) { const p=document.createElement("p"); p.className="muted"; p.textContent="Projects will appear here soon."; root.append(p); return; }
   items.forEach(p => {
