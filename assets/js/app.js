@@ -154,7 +154,7 @@ $("projectForm").addEventListener("submit",async e=>{
   const result=id?await db.from("projects").update(row).eq("id",id):await db.from("projects").insert(row);
   setBusy(button,false,id?"Save project ↗":"Publish project ↗");
   if(result.error)return say("adminStatus","Project could not be saved: "+result.error.message,true);
-  say("adminStatus",id?"Project updated successfully.":"Project published successfully.");resetProjectForm();await loadAdmin();await loadPublic();
+  say("adminStatus",id?"Project updated successfully.":"Project published successfully.");await logActivity(id?"project_updated":"project_created",row.title);await refreshActivity();resetProjectForm();await loadAdmin();await loadPublic();
 });
 function editProject(id){
   const p=projectsCache.find(x=>x.id===id);if(!p)return;
