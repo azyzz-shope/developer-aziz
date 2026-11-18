@@ -62,10 +62,14 @@ async function init() {
   });
 }
 async function loadPublic() {
-  const [profileRes, projectsRes, blogRes] = await Promise.all([
+  const [profileRes, projectsRes, blogRes, reviewsRes, academyRes, productsRes, statusRes] = await Promise.all([
     db.from("profiles").select("*").eq("id",1).maybeSingle(),
     db.from("projects").select("*").order("sort_order",{ascending:true}).order("created_at",{ascending:false}),
-    db.from("blog_posts").select("*").eq("published",true).order("created_at",{ascending:false}).limit(12)
+    db.from("blog_posts").select("*").eq("published",true).order("created_at",{ascending:false}).limit(12),
+    db.from("reviews").select("*").eq("approved",true).order("created_at",{ascending:false}).limit(9),
+    db.from("academy_lessons").select("*").eq("published",true).order("created_at",{ascending:false}).limit(9),
+    db.from("digital_products").select("*").eq("published",true).order("created_at",{ascending:false}).limit(9),
+    db.from("system_status").select("*").eq("id",1).maybeSingle()
   ]);
   if (profileRes.error) console.warn("Profile load:", profileRes.error.message);
   if (projectsRes.error) { $("projectGrid").textContent = "Projects are temporarily unavailable."; return; }
@@ -76,7 +80,7 @@ async function loadPublic() {
     $("displayLocation").textContent = (p.location || "QATAR").toUpperCase();
     if (p.headline) document.querySelector(".hero h1").setAttribute("aria-label", p.headline);
   }
-  renderPublicProjects(projectsRes.data || []);renderPublicBlog(blogRes.data||[]);translatePage();
+  renderPublicProjects(projectsRes.data || []);renderPublicBlog(blogRes.data||[]);renderReviews(reviewsRes.data||[]);renderCards("academyGrid",academyRes.data||[],"No lessons published yet.");renderCards("storeGrid",productsRes.data||[],"No digital products available yet.");renderSystemStatus(statusRes.data);translatePage();
 }
 async function recordPageView() {
   try { const {error}=await db.rpc("record_page_view"); if(error) console.warn("Visit counter:",error.message); }
@@ -98,6 +102,13 @@ $("blogForm").addEventListener("submit",async e=>{
  if(error)return say("adminStatus","Blog save failed: "+error.message,true);
  $("blogForm").reset();$("blogEditId").value="";await logActivity(id?"blog_updated":"blog_created",row.title);say("adminStatus","Article published.");await loadAdmin();await loadPublic();
 });
+
+function renderCards(id,items,emptyText){const root=$(id);if(!root)return;root.replaceChildren();if(!items.length){const p=document.createElement("p");p.className="muted";p.textContent=emptyText;root.append(p);return;}items.forEach(item=>{const card=document.createElement("article");card.className="blog-card";const title=document.createElement("h3");title.textContent=item.title||item.name||"Untitled";const desc=document.createElement("p");desc.textContent=item.description||item.summary||"";card.append(title,desc);if(item.url){const url=safeExternal(item.url);if(url){const a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener noreferrer";a.textContent=item.price_label||"Open ↗";card.append(a);}}root.append(card);});}
+function renderReviews(items){const root=$("reviewsGrid");if(!root)return;root.replaceChildren();if(!items.length){const p=document.createElement("p");p.className="muted";p.textContent="No approved reviews yet.";root.append(p);return;}items.forEach(item=>{const card=document.createElement("article");card.className="blog-card";const title=document.createElement("h3");title.textContent=item.name;const rating=document.createElement("div");rating.className="blog-date";rating.textContent="★".repeat(Number(item.rating)||0);const body=document.createElement("p");body.textContent=item.body;card.append(title,rating,body);root.append(card);});}
+function renderSystemStatus(item){const root=$("publicSystemStatus");if(!root)return;root.textContent=item?(item.message||"Services operational"):"Status information is not configured yet.";root.dataset.state=item?.state||"unknown";}
+$("serviceRequestForm").addEventListener("submit",async e=>{e.preventDefault();if(!db)return say("serviceRequestStatus","Service request is unavailable.",true);const form=e.currentTarget,button=form.querySelector("button[type=submit]"),row={service:form.elements.service.value,details:form.elements.details.value.trim(),name:form.elements.name.value.trim(),email:form.elements.email.value.trim()};if(row.details.length<10)return say("serviceRequestStatus","Please add more project details.",true);setBusy(button,true,"Sending…");const {error}=await db.from("service_requests").insert(row);setBusy(button,false,"Send project request ↗");if(error)return say("serviceRequestStatus","Could not submit request: "+error.message,true);form.reset();say("serviceRequestStatus","Request received. The developer will review it soon.");});
+$("reviewForm").addEventListener("submit",async e=>{e.preventDefault();if(!db)return say("reviewStatus","Reviews are unavailable.",true);const form=e.currentTarget,button=form.querySelector("button[type=submit]"),row={name:form.elements.name.value.trim(),rating:Number(form.elements.rating.value),body:form.elements.body.value.trim()};setBusy(button,true,"Submitting…");const {error}=await db.from("reviews").insert(row);setBusy(button,false,"Submit review ↗");if(error)return say("reviewStatus","Could not submit review: "+error.message,true);form.reset();say("reviewStatus","Thank you. Your review will appear after moderation.");});
+
 function runTerminal(command){
  const output=$("terminalOutput");const c=command.trim().toLowerCase();const responses={help:"Available commands: help, about, skills, projects, contact, clear",about:"Developer Aziz — portfolio focused on web development, programming and defensive cybersecurity.",skills:"Web development • Python fundamentals • Cybersecurity principles • Linux • Git/GitHub",projects:"Scroll to the Projects section to explore published work.",contact:"Use the public contact form. No account is required.",clear:""};
  if(c==="clear"){output.textContent="AZ TERMINAL CLEARED.";return;}
