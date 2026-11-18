@@ -9,14 +9,14 @@
 <meta property="og:description" content="Build. Create. Innovate.">
 <title>Developer Aziz | Portfolio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="assets/css/style.css?v=20261118-10">
+<link rel="stylesheet" href="assets/css/style.css?v=20261118-11">
 </head>
 <body>
 <div id="site">
 <header class="topbar">
 <a class="brand" href="#home">DEVELOPER <b>AZIZ.</b></a>
 <nav aria-label="Main navigation">
-<a href="#about">About</a><a href="#skills">Skills</a><a href="#projects">Projects</a><a href="#contact">Contact</a><a href="#services">Services</a><a href="#blog">Blog</a>
+<a href="#about">About</a><a href="#skills">Skills</a><a href="#projects">Projects</a><a href="#contact">Contact</a><a href="#services">Services</a><a href="#blog">Blog</a><a href="#academy">Academy</a>
 <button id="languageToggle" class="language-toggle" type="button" aria-label="Change language">العربية</button><button id="openLogin" class="admin-trigger" type="button">Admin ↗</button>
 </nav>
 </header>
@@ -55,7 +55,12 @@
 <article class="service-card"><span>02</span><h3>Website Maintenance</h3><p>Content updates, layout fixes and performance improvements.</p><a href="#contact" class="service-link">Request this service ↗</a></article>
 <article class="service-card"><span>03</span><h3>Programming Help</h3><p>Small automation and beginner-friendly programming projects.</p><a href="#contact" class="service-link">Request this service ↗</a></article>
 </div><p class="analytics-note">Project scope and pricing are confirmed after discussing your requirements. No fixed prices are promised here.</p>
+<form id="serviceRequestForm" class="contact-form feature-form"><h3>Request a service</h3><label>Service<select name="service" required><option value="">Choose a service</option><option>Web Development</option><option>Website Maintenance</option><option>Programming Help</option><option>Other</option></select></label><label>Project details<textarea name="details" rows="3" minlength="10" maxlength="2500" required placeholder="Describe what you need…"></textarea></label><label>Your name<input name="name" maxlength="80" required></label><label>Email<input name="email" type="email" maxlength="254" required></label><button class="btn" type="submit">Send project request ↗</button><p id="serviceRequestStatus" class="form-status" aria-live="polite"></p></form>
 </section>
+<section id="academy" class="section wrap"><div class="section-kicker">08 / LEARN</div><h2>AZ <em>Academy.</em></h2><div id="academyGrid" class="blog-grid"><p class="muted">Learning resources coming soon.</p></div></section>
+<section id="store" class="section wrap"><div class="section-kicker">09 / DIGITAL GOODS</div><h2>Digital <em>store.</em></h2><div id="storeGrid" class="blog-grid"><p class="muted">Digital products coming soon.</p></div></section>
+<section id="reviews" class="section wrap"><div class="section-kicker">10 / COMMUNITY</div><h2>Client <em>reviews.</em></h2><div id="reviewsGrid" class="blog-grid"><p class="muted">Approved reviews will appear here.</p></div><form id="reviewForm" class="contact-form feature-form"><h3>Leave a review</h3><label>Your name<input name="name" maxlength="80" required></label><label>Rating<select name="rating" required><option value="5">5 — Excellent</option><option value="4">4 — Very good</option><option value="3">3 — Good</option><option value="2">2 — Fair</option><option value="1">1 — Needs improvement</option></select></label><label>Your feedback<textarea name="body" minlength="5" maxlength="1200" required></textarea></label><button class="btn" type="submit">Submit review ↗</button><p id="reviewStatus" class="form-status" aria-live="polite"></p></form></section>
+<section id="systemStatus" class="section wrap"><div class="section-kicker">11 / TRANSPARENCY</div><h2>System <em>status.</em></h2><div id="publicSystemStatus" class="status-panel">Checking service status…</div></section>
 <section id="blog" class="section wrap">
 <div class="section-kicker">06 / NOTES & ARTICLES</div><div class="section-title-row"><h2>Latest <em>thinking.</em></h2><span class="section-note">THE AZ BLOG</span></div>
 <div id="publicBlog" class="blog-grid"><p class="muted">Articles will appear here soon.</p></div>
@@ -151,6 +156,6 @@
 </section>
 <div id="connectionNotice" hidden>Supabase is not configured. Check the public project URL and publishable key.</div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="assets/js/config.js?v=20261118-10"></script>
-<script src="assets/js/app.js?v=20261118-10"></script>
+<script src="assets/js/config.js?v=20261118-11"></script>
+<script src="assets/js/app.js?v=20261118-11"></script>
 </body></html>
