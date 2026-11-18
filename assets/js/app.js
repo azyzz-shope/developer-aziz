@@ -95,11 +95,12 @@ async function adminAccess(user) {
 function hideAdmin(){ $("adminPanel").hidden=true; $("site").hidden=false; stopInboxUpdates(); }
 async function loadAdmin(){
   say("adminStatus","Loading dashboard…");
-  const [profileRes,projectRes,messageRes,viewsRes]=await Promise.all([
+  const [profileRes,projectRes,messageRes,viewsRes,activityRes]=await Promise.all([
     db.from("profiles").select("*").eq("id",1).maybeSingle(),
     db.from("projects").select("*").order("sort_order",{ascending:true}).order("created_at",{ascending:false}),
     db.from("messages").select("*").order("created_at",{ascending:false}).limit(100),
-    db.from("page_views").select("view_date,views").order("view_date",{ascending:false}).limit(7)
+    db.from("page_views").select("view_date,views").order("view_date",{ascending:false}).limit(7),
+    db.from("activity_logs").select("*").order("created_at",{ascending:false}).limit(30)
   ]);
   const errors=[profileRes.error,projectRes.error,messageRes.error].filter(Boolean);
   if(viewsRes.error) console.warn("Analytics unavailable:",viewsRes.error.message);
@@ -115,7 +116,8 @@ async function loadAdmin(){
   $("statVisits").textContent=viewsRes.error?"—":(total.toLocaleString()+(days.length===7?" · 7d":""));
   renderVisitChart(days);
   $("messageCount").textContent=messagesCache.length+" MESSAGES";
-  renderAdminProjects(projectsCache);renderMessages(messagesCache);
+  renderAdminProjects(projectsCache);renderMessages(messagesCache);renderContacts(messagesCache);renderActivity(activityRes.data||[]);
+  if(activityRes.error)console.warn("Activity log unavailable:",activityRes.error.message);
   if(!errors.length)say("adminStatus","Dashboard is up to date.");
 }
 $("refreshAdmin").addEventListener("click",loadAdmin);
@@ -124,7 +126,7 @@ $("profileForm").addEventListener("submit",async e=>{
   const row={id:1,display_name:$("editName").value.trim(),headline:$("editHeadline").value.trim(),about:$("editAbout").value.trim(),location:$("editLocation").value.trim(),contact_email:$("editEmail").value.trim()||null,updated_at:new Date().toISOString()};
   const {error}=await db.from("profiles").upsert(row);setBusy(button,false,"Save profile changes ↗");
   if(error)return say("adminStatus","Profile save failed: "+error.message,true);
-  say("adminStatus","Profile saved successfully.");await loadPublic();
+  say("adminStatus","Profile saved successfully.");await logActivity("profile_updated","Updated portfolio profile settings.");await refreshActivity();await loadPublic();
 });
 function resetProjectForm(){
   $("projectForm").reset();$("editProjectId").value="";$("projectFormTitle").textContent="Add a project";
@@ -173,10 +175,11 @@ function renderAdminProjects(items){
     const info=document.createElement("div");info.className="admin-project-info";const name=document.createElement("b");name.textContent=p.title;const meta=document.createElement("small");meta.textContent=(p.category||"Project")+(p.featured?" · Featured":"")+" · Order "+(p.sort_order??0);info.append(name,meta);row.append(info);
     const actions=document.createElement("div");actions.className="row-actions";
     const edit=document.createElement("button");edit.className="small-action";edit.type="button";edit.textContent="Edit";edit.addEventListener("click",()=>editProject(p.id));
-    const del=document.createElement("button");del.className="small-action danger";del.type="button";del.textContent="Delete";del.addEventListener("click",async()=>{if(!confirm("Delete this project?"))return;const {error}=await db.from("projects").delete().eq("id",p.id);if(error)return say("adminStatus","Delete failed: "+error.message,true);say("adminStatus","Project deleted.");await loadAdmin();await loadPublic();});
+    const del=document.createElement("button");del.className="small-action danger";del.type="button";del.textContent="Delete";del.addEventListener("click",async()=>{if(!confirm("Delete this project?"))return;const {error}=await db.from("projects").delete().eq("id",p.id);if(error)return say("adminStatus","Delete failed: "+error.message,true);say("adminStatus","Project deleted.");await logActivity("project_deleted",p.title);await refreshActivity();await loadAdmin();await loadPublic();});
     actions.append(edit,del);row.append(actions);root.append(row);
   });
 }
+$("contactSearch").addEventListener("input",()=>renderContacts(messagesCache));
 $("projectSearch").addEventListener("input",e=>{
   const q=e.target.value.trim().toLowerCase();
   renderAdminProjects(projectsCache.filter(p=>(p.title+" "+p.description+" "+p.category).toLowerCase().includes(q)));
@@ -194,6 +197,13 @@ function renderVisitChart(days){
     item.append(count,track,label);root.append(item);
   });
 }
+async function logActivity(action,details){
+  if(!db)return;
+  const {data:{user}}=await db.auth.getUser();
+  if(!user)return;
+  const {error}=await db.from("activity_logs").insert({actor_id:user.id,action,details});
+  if(error)console.warn("Activity log:",error.message);
+}
 function renderMessages(items){
   const root=$("adminMessages");root.replaceChildren();
   if(!items.length){const p=document.createElement("p");p.className="muted";p.textContent="Your inbox is empty.";root.append(p);return;}
@@ -204,10 +214,53 @@ function renderMessages(items){
     const text=document.createElement("p");text.textContent=m.message;
     const date=document.createElement("small");date.textContent=new Date(m.created_at).toLocaleString();
     body.append(head,text,date);
+    const tools=document.createElement("div");tools.className="message-tools";
+    const status=document.createElement("select");status.className="request-status";status.setAttribute("aria-label","Request status");
+    [["new","New"],["in_progress","In progress"],["completed","Completed"]].forEach(([value,label])=>{const option=document.createElement("option");option.value=value;option.textContent=label;status.append(option);});
+    status.value=m.status||"new";
+    status.addEventListener("change",async()=>{
+      const next=status.value;status.disabled=true;
+      const {error}=await db.from("messages").update({status:next}).eq("id",m.id);
+      status.disabled=false;
+      if(error){status.value=m.status||"new";return say("adminStatus","Could not update request: "+error.message,true);}
+      m.status=next;await logActivity("request_status",m.name+" — "+next.replace("_"," "));
+      say("adminStatus","Request status updated.");await refreshActivity();
+    });
     const del=document.createElement("button");del.className="small-action danger";del.type="button";del.textContent="Delete";
-    del.addEventListener("click",async()=>{if(!confirm("Delete this message?"))return;const {error}=await db.from("messages").delete().eq("id",m.id);if(error)return say("adminStatus","Message delete failed: "+error.message,true);say("adminStatus","Message deleted.");await loadAdmin();});
-    row.append(body,del);root.append(row);
+    del.addEventListener("click",async()=>{if(!confirm("Delete this message?"))return;const {error}=await db.from("messages").delete().eq("id",m.id);if(error)return say("adminStatus","Message delete failed: "+error.message,true);await logActivity("message_deleted",m.name+" · "+m.email);say("adminStatus","Message deleted.");await loadAdmin();});
+    tools.append(status,del);row.append(body,tools);root.append(row);
   });
+}
+function renderContacts(items){
+  const root=$("adminContacts");if(!root)return;root.replaceChildren();
+  const q=($("contactSearch")?.value||"").trim().toLowerCase();
+  const map=new Map();
+  items.forEach(m=>{const key=(m.email||"").toLowerCase();if(key&&!map.has(key))map.set(key,m);});
+  const contacts=[...map.values()].filter(m=>(m.name+" "+m.email).toLowerCase().includes(q));
+  $("contactCount").textContent=map.size+" CONTACTS";
+  if(!contacts.length){const p=document.createElement("p");p.className="muted";p.textContent="No matching contacts yet.";root.append(p);return;}
+  contacts.forEach(m=>{
+    const row=document.createElement("div");row.className="contact-row";
+    const name=document.createElement("b");name.textContent=m.name;
+    const email=document.createElement("small");email.textContent=m.email;
+    const link=document.createElement("a");link.href="mailto:"+encodeURIComponent(m.email);link.textContent="Reply by email ↗";
+    row.append(name,email,link);root.append(row);
+  });
+}
+function renderActivity(items){
+  const root=$("activityLog");if(!root)return;root.replaceChildren();
+  if(!items.length){const p=document.createElement("p");p.className="muted";p.textContent="Activity will appear here as you manage requests.";root.append(p);return;}
+  items.forEach(item=>{
+    const row=document.createElement("div");row.className="activity-row";
+    const title=document.createElement("b");title.textContent=item.action.replaceAll("_"," ").toUpperCase();
+    const detail=document.createElement("p");detail.textContent=item.details||"";
+    const date=document.createElement("small");date.textContent=new Date(item.created_at).toLocaleString();
+    row.append(title,detail,date);root.append(row);
+  });
+}
+async function refreshActivity(){
+  const {data,error}=await db.from("activity_logs").select("*").order("created_at",{ascending:false}).limit(30);
+  if(!error)renderActivity(data||[]);
 }
 
 function updateUnreadCount(){
