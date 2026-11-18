@@ -82,3 +82,8 @@ as $$
 $$;
 revoke all on function public.record_page_view() from public;
 grant execute on function public.record_page_view() to anon, authenticated;
+
+
+-- Allow visitors to submit contact messages without creating an account.
+grant insert on table public.messages to anon, authenticated;
+grant select, delete on table public.messages to authenticated;
