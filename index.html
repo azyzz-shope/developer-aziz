@@ -9,14 +9,14 @@
 <meta property="og:description" content="Build. Create. Innovate.">
 <title>Developer Aziz | Portfolio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="assets/css/style.css?v=20261118-9">
+<link rel="stylesheet" href="assets/css/style.css?v=20261118-10">
 </head>
 <body>
 <div id="site">
 <header class="topbar">
 <a class="brand" href="#home">DEVELOPER <b>AZIZ.</b></a>
 <nav aria-label="Main navigation">
-<a href="#about">About</a><a href="#skills">Skills</a><a href="#projects">Projects</a><a href="#contact">Contact</a>
+<a href="#about">About</a><a href="#skills">Skills</a><a href="#projects">Projects</a><a href="#contact">Contact</a><a href="#services">Services</a><a href="#blog">Blog</a>
 <button id="languageToggle" class="language-toggle" type="button" aria-label="Change language">العربية</button><button id="openLogin" class="admin-trigger" type="button">Admin ↗</button>
 </nav>
 </header>
@@ -47,7 +47,24 @@
 <div class="section-kicker">03 / SELECTED WORK</div><div class="section-title-row"><h2>Things I've <em>built.</em></h2><span class="section-note">A SELECTION OF MY WORK</span></div>
 <div id="projectGrid" class="project-grid"><p class="muted">Loading projects…</p></div>
 </section>
-<section id="contact" class="section wrap contact-section">
+
+<section id="services" class="section wrap">
+<div class="section-kicker">05 / SERVICES</div><div class="section-title-row"><h2>What I can <em>build.</em></h2><span class="section-note">LET'S MAKE IT REAL</span></div>
+<div class="services-grid">
+<article class="service-card"><span>01</span><h3>Web Development</h3><p>Responsive portfolio, business and landing-page websites.</p><a href="#contact" class="service-link">Request this service ↗</a></article>
+<article class="service-card"><span>02</span><h3>Website Maintenance</h3><p>Content updates, layout fixes and performance improvements.</p><a href="#contact" class="service-link">Request this service ↗</a></article>
+<article class="service-card"><span>03</span><h3>Programming Help</h3><p>Small automation and beginner-friendly programming projects.</p><a href="#contact" class="service-link">Request this service ↗</a></article>
+</div><p class="analytics-note">Project scope and pricing are confirmed after discussing your requirements. No fixed prices are promised here.</p>
+</section>
+<section id="blog" class="section wrap">
+<div class="section-kicker">06 / NOTES & ARTICLES</div><div class="section-title-row"><h2>Latest <em>thinking.</em></h2><span class="section-note">THE AZ BLOG</span></div>
+<div id="publicBlog" class="blog-grid"><p class="muted">Articles will appear here soon.</p></div>
+</section>
+<section id="terminal" class="section wrap">
+<div class="section-kicker">07 / EXPLORE</div><h2>AZ <em>Terminal.</em></h2><p class="muted">A small, safe interactive guide to this portfolio.</p>
+<div class="terminal-box"><div id="terminalOutput" class="terminal-output" aria-live="polite">AZ TERMINAL v1.0 — Type "help" to see available commands.</div><form id="terminalForm" class="terminal-form"><span>&gt;</span><input id="terminalInput" autocomplete="off" maxlength="80" placeholder="help, about, skills, projects, contact"><button type="submit">Run</button></form></div>
+</section>
+\n<section id="contact" class="section wrap contact-section">
 <div class="section-kicker">04 / CONTACT</div><h2>Have an idea? <em>Let's build it.</em></h2><p class="muted">Have a question, need a website, or want to request a project? Send a message directly to the developer.</p><p class="contact-note"><span class="contact-note-dot"></span> NO ACCOUNT OR SIGN-UP REQUIRED · OPEN TO EVERY VISITOR</p>
 <form id="contactForm" class="contact-form">
 <label>Your name<input name="name" placeholder="Name" maxlength="80" autocomplete="name" required></label>
@@ -124,11 +141,16 @@
 <section class="admin-card"><div class="card-heading"><div><div class="section-kicker">05 / CONTACTS</div><h2>Visitor directory</h2></div><span id="contactCount" class="tiny-tag">0 CONTACTS</span></div><input id="contactSearch" class="search-input" type="search" placeholder="Search name or email…"><div id="adminContacts" class="admin-list"><p class="muted">Loading contacts…</p></div></section>
 <section class="admin-card"><div class="card-heading"><div><div class="section-kicker">06 / ACTIVITY</div><h2>Activity log</h2></div><span class="tiny-tag">LATEST ACTIONS</span></div><div id="activityLog" class="admin-list"><p class="muted">Loading activity…</p></div></section>
 </div>
+<div class="admin-grid">
+<section class="admin-card"><div class="card-heading"><div><div class="section-kicker">07 / PUBLISHING</div><h2>Blog manager</h2></div></div>
+<form id="blogForm" class="admin-form"><input id="blogEditId" type="hidden"><label>Article title<input id="blogTitle" maxlength="140" required></label><label>Short summary<textarea id="blogSummary" rows="2" maxlength="300" required></textarea></label><label>Article content<textarea id="blogBody" rows="6" maxlength="10000" required></textarea></label><button class="btn" type="submit">Publish article ↗</button></form><div id="adminBlogList" class="admin-list"></div></section>
+<section class="admin-card"><div class="card-heading"><div><div class="section-kicker">08 / CLIENT EXPERIENCE</div><h2>Client portal & live chat</h2></div></div><p class="muted">Incoming requests and replies are managed through the secure inbox. Use the request status selector to keep clients updated; direct live chat and private tracking links require the next database integration.</p><a class="btn btn-ghost" href="#adminMessages">Open visitor inbox ↗</a></section>
+</div>
 <div class="admin-footer-note">SECURED WITH SUPABASE AUTH + ROW LEVEL SECURITY</div>
 </div>
 </section>
 <div id="connectionNotice" hidden>Supabase is not configured. Check the public project URL and publishable key.</div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="assets/js/config.js?v=20261118-9"></script>
-<script src="assets/js/app.js?v=20261118-9"></script>
+<script src="assets/js/config.js?v=20261118-10"></script>
+<script src="assets/js/app.js?v=20261118-10"></script>
 </body></html>
