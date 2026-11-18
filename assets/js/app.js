@@ -64,7 +64,8 @@ async function init() {
 async function loadPublic() {
   const [profileRes, projectsRes, blogRes] = await Promise.all([
     db.from("profiles").select("*").eq("id",1).maybeSingle(),
-    db.from("projects").select("*").order("sort_order",{ascending:true}).order("created_at",{ascending:false})
+    db.from("projects").select("*").order("sort_order",{ascending:true}).order("created_at",{ascending:false}),
+    db.from("blog_posts").select("*").eq("published",true).order("created_at",{ascending:false}).limit(12)
   ]);
   if (profileRes.error) console.warn("Profile load:", profileRes.error.message);
   if (projectsRes.error) { $("projectGrid").textContent = "Projects are temporarily unavailable."; return; }
@@ -161,7 +162,8 @@ async function loadAdmin(){
     db.from("projects").select("*").order("sort_order",{ascending:true}).order("created_at",{ascending:false}),
     db.from("messages").select("*").order("created_at",{ascending:false}).limit(100),
     db.from("page_views").select("view_date,views").order("view_date",{ascending:false}).limit(7),
-    db.from("activity_logs").select("*").order("created_at",{ascending:false}).limit(30)
+    db.from("activity_logs").select("*").order("created_at",{ascending:false}).limit(30),
+    db.from("blog_posts").select("*").order("created_at",{ascending:false}).limit(50)
   ]);
   const errors=[profileRes.error,projectRes.error,messageRes.error].filter(Boolean);
   if(viewsRes.error) console.warn("Analytics unavailable:",viewsRes.error.message);
