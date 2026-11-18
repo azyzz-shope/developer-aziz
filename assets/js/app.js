@@ -1,6 +1,6 @@
 (() => {
 const $ = id => document.getElementById(id);
-let db = null, projectsCache = [], messagesCache = [], currentImageUrl = null;
+let db = null, projectsCache = [], messagesCache = [], currentImageUrl = null, inboxChannel = null, inboxPoll = null;\nconst LAST_READ_KEY = "az_control_messages_last_read";\nlet lastReadAt = localStorage.getItem(LAST_READ_KEY) || "";
 const say = (id, message, bad = false) => {
   const el = $(id); if (!el) return;
   el.textContent = message; el.classList.toggle("error", !!bad);
@@ -89,7 +89,7 @@ async function adminAccess(user) {
   $("adminModal").hidden=true;$("site").hidden=true;$("adminPanel").hidden=false;
   await loadAdmin();
 }
-function hideAdmin(){ $("adminPanel").hidden=true; $("site").hidden=false; }
+function hideAdmin(){ $("adminPanel").hidden=true; $("site").hidden=false; stopInboxUpdates(); }
 async function loadAdmin(){
   say("adminStatus","Loading dashboard…");
   const [profileRes,projectRes,messageRes,viewsRes]=await Promise.all([
@@ -206,6 +206,48 @@ function renderMessages(items){
     row.append(body,del);root.append(row);
   });
 }
-$("logoutButton").addEventListener("click",async()=>{await db.auth.signOut();hideAdmin();});
+
+function updateUnreadCount(){
+  const unread=messagesCache.filter(m=>!lastReadAt || new Date(m.created_at).getTime()>new Date(lastReadAt).getTime()).length;
+  const badge=$("unreadCount");if(!badge)return;
+  badge.textContent=unread+" NEW";badge.hidden=unread===0;
+  $("statMessages").textContent=messagesCache.length;
+}
+$("markMessagesRead").addEventListener("click",()=>{
+  lastReadAt=new Date().toISOString();localStorage.setItem(LAST_READ_KEY,lastReadAt);updateUnreadCount();
+  say("adminStatus","Inbox marked as read.");
+});
+$("enableNotifications").addEventListener("click",async()=>{
+  if(!("Notification" in window))return say("adminStatus","Browser notifications are not supported here.",true);
+  const permission=await Notification.requestPermission();
+  if(permission==="granted"){say("adminStatus","Browser notifications enabled.");$("enableNotifications").textContent="Alerts enabled";}
+  else say("adminStatus","Notifications are blocked. You can enable them in browser site settings.",true);
+});
+function notifyNewMessage(message){
+  say("adminStatus","New message received from "+message.name+".");
+  if("Notification" in window && Notification.permission==="granted" && document.hidden){
+    new Notification("Developer Aziz — New message",{body:"From "+message.name+": "+message.message.slice(0,110)});
+  }
+}
+function startInboxUpdates(){
+  stopInboxUpdates();
+  inboxChannel=db.channel("az-control-inbox").on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},payload=>{
+    const m=payload.new;if(!m)return;
+    if(!messagesCache.some(x=>x.id===m.id)){messagesCache.unshift(m);renderMessages(messagesCache);$("messageCount").textContent=messagesCache.length+" MESSAGES";$("statMessages").textContent=messagesCache.length;updateUnreadCount();notifyNewMessage(m);}
+  }).subscribe();
+  inboxPoll=window.setInterval(async()=>{
+    if($("adminPanel").hidden)return;
+    const {data,error}=await db.from("messages").select("*").order("created_at",{ascending:false}).limit(100);
+    if(error)return;
+    const known=new Set(messagesCache.map(m=>m.id));
+    const fresh=(data||[]).filter(m=>!known.has(m.id));
+    if(fresh.length){messagesCache=data||[];renderMessages(messagesCache);$("messageCount").textContent=messagesCache.length+" MESSAGES";$("statMessages").textContent=messagesCache.length;updateUnreadCount();fresh.forEach(notifyNewMessage);}
+  },30000);
+}
+function stopInboxUpdates(){
+  if(inboxPoll){clearInterval(inboxPoll);inboxPoll=null;}
+  if(inboxChannel&&db){db.removeChannel(inboxChannel);inboxChannel=null;}
+}
+\n$("logoutButton").addEventListener("click",async()=>{await db.auth.signOut();hideAdmin();});
 init();
 })();
