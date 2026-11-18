@@ -2,6 +2,42 @@
 const $ = id => document.getElementById(id);
 let db = null, projectsCache = [], messagesCache = [], currentImageUrl = null, inboxChannel = null, inboxPoll = null;
 const LAST_READ_KEY = "az_control_messages_last_read";
+const translations={
+"DEVELOPER ":"المطوّر ",
+"About":"نبذة","Skills":"المهارات","Projects":"المشاريع","Contact":"تواصل","Admin ↗":"الإدارة ↗",
+"PORTFOLIO":"معرض الأعمال","I'm ":"أنا "," — an aspiring developer exploring programming, web technologies and cybersecurity.":" — مطوّر طموح أتعلم البرمجة وتقنيات الويب والأمن السيبراني.",
+"Explore my work ":"استكشف أعمالي ","Let's connect":"تواصل معي","CODE / CREATE / REPEAT":"برمج / ابتكر / كرر",
+"BASED IN ":"الموقع: ","AVAILABLE FOR CREATIVE PROJECTS":"متاح للمشاريع الإبداعية",
+"01 / ABOUT":"01 / نبذة","Curiosity into ":"من الفضول إلى ","creation.":"الإنجاز.","A curious mind building skills one project at a time. Focused on web development, programming and learning cybersecurity.":"عقل فضولي يطوّر مهاراته مشروعاً بعد مشروع، مع التركيز على تطوير الويب والبرمجة وتعلّم الأمن السيبراني.",
+"02 / TOOLKIT":"02 / المهارات","Skills & ":"المهارات و","interests.":"الاهتمامات.","Web Development":"تطوير الويب","HTML, CSS, JavaScript and responsive interfaces.":"HTML وCSS وJavaScript وتصميم واجهات متجاوبة.","Programming":"البرمجة","Python fundamentals, logic and automation.":"أساسيات Python والمنطق والأتمتة.","Cybersecurity":"الأمن السيبراني","Security principles and defensive practices.":"مبادئ الأمن والممارسات الدفاعية.","Tools":"الأدوات","Linux, Git, GitHub and continuous learning.":"Linux وGit وGitHub والتعلّم المستمر.",
+"03 / SELECTED WORK":"03 / أعمال مختارة","Things I've ":"أعمال قمت ","built.":"بإنشائها.","A SELECTION OF MY WORK":"مجموعة من أعمالي","Loading projects…":"جارٍ تحميل المشاريع…","Projects will appear here soon.":"ستظهر المشاريع هنا قريباً.","View project ↗":"عرض المشروع ↗","FEATURED":"مميز",
+"04 / CONTACT":"04 / التواصل","Have an idea? ":"لديك فكرة؟ ","Let's build it.":"لننفذها معاً.","Have a question, need a website, or want to request a project? Send a message directly to the developer.":"لديك سؤال أو تحتاج موقعاً أو تريد طلب مشروع؟ أرسل رسالتك مباشرة إلى المطوّر.",
+"NO ACCOUNT OR SIGN-UP REQUIRED · OPEN TO EVERY VISITOR":"لا حاجة لحساب أو تسجيل · متاح للجميع","Your name":"اسمك","Name":"الاسم","Email address":"البريد الإلكتروني","So the developer can reply to your request.":"حتى يتمكن المطوّر من الرد على طلبك.","Message":"الرسالة","Tell me about your idea…":"أخبرني عن فكرتك…","Send message ":"إرسال الرسالة ","Sending…":"جارٍ الإرسال…","Message sent successfully. Thank you!":"تم إرسال رسالتك بنجاح، شكراً لك!","Contact form is unavailable right now.":"نموذج التواصل غير متاح حالياً.","Please enter your name and a message of at least 10 characters.":"يرجى إدخال اسمك ورسالة لا تقل عن 10 أحرف.",
+"DESIGNED WITH INTENTION.":"صُمم بعناية.","BACK TO TOP ↑":"العودة للأعلى ↑","PRIVATE WORKSPACE / SECURE ACCESS":"مساحة خاصة / دخول آمن","Admin sign in":"تسجيل دخول الإدارة","Close":"إغلاق","Email":"البريد الإلكتروني","Admin email":"بريد المدير","Password":"كلمة المرور","Sign in ↗":"تسجيل الدخول ↗","Signing in…":"جارٍ تسجيل الدخول…","Sign out ↗":"تسجيل الخروج ↗",
+"ADMIN SESSION":"جلسة المدير","DEVELOPER AZIZ / CONTROL CENTER":"المطوّر عزيز / مركز التحكم","Dashboard":"لوحة التحكم","Manage your portfolio content from one place.":"أدر محتوى معرض أعمالك من مكان واحد.","↻ Refresh data":"↻ تحديث البيانات","PROJECTS":"المشاريع","MESSAGES":"الرسائل","FEATURED":"مميز","PROFILE":"الملف الشخصي","VISITS":"الزيارات","LAST 7 DAYS":"آخر 7 أيام","Published work":"الأعمال المنشورة","Inbox total":"إجمالي الرسائل","Highlighted projects":"المشاريع المميزة","Public portfolio":"المعرض العام","All-time page views":"إجمالي مشاهدات الصفحات","Recent page views":"مشاهدات حديثة",
+"01 / PERSONAL BRAND":"01 / الهوية الشخصية","Profile settings":"إعدادات الملف الشخصي","Display name":"الاسم المعروض","Hero headline":"العنوان الرئيسي","About":"نبذة","Location":"الموقع","Contact email":"بريد التواصل","Save profile changes ↗":"حفظ تغييرات الملف ↗","02 / CONTENT":"02 / المحتوى","Add a project":"إضافة مشروع","Edit project":"تعديل المشروع","PORTFOLIO":"معرض الأعمال","Project title":"عنوان المشروع","Project name":"اسم المشروع","Description":"الوصف","What did you build?":"ماذا أنشأت؟","Category":"التصنيف","Development":"تطوير","Project URL":"رابط المشروع","Project cover image":"صورة غلاف المشروع","JPG, PNG, WEBP or GIF · Max 5 MB":"JPG أو PNG أو WEBP أو GIF · الحد الأقصى 5 MB","Featured project":"مشروع مميز","Display order":"ترتيب العرض","Publish project ↗":"نشر المشروع ↗","Save project ↗":"حفظ المشروع ↗","Cancel edit":"إلغاء التعديل","LIVE PERFORMANCE":"الأداء المباشر","Visitor analytics":"تحليلات الزوار","DAILY PAGE VIEWS · LAST 7 DAYS":"مشاهدات يومية · آخر 7 أيام","Analytics will appear after setup.":"ستظهر التحليلات بعد الإعداد.","Privacy-friendly counting: this site stores daily totals only, not visitor names, IP addresses or browsing profiles.":"إحصاءات تحافظ على الخصوصية: نخزّن إجمالي الزيارات اليومي فقط، دون أسماء الزوار أو عناوين IP أو ملفات التصفح.",
+"03 / LIBRARY":"03 / المكتبة","Manage projects":"إدارة المشاريع","Search projects…":"ابحث عن المشاريع…","04 / INBOX":"04 / صندوق الوارد","Messages from visitors":"رسائل الزوار","Enable alerts":"تفعيل التنبيهات","Mark read":"تحديد كمقروء","05 / CONTACTS":"05 / جهات الاتصال","Visitor directory":"دليل الزوار","Search name or email…":"ابحث بالاسم أو البريد…","06 / ACTIVITY":"06 / سجل النشاط","Activity log":"سجل النشاط","LATEST ACTIONS":"أحدث العمليات","SECURED WITH SUPABASE AUTH + ROW LEVEL SECURITY":"مؤمّن عبر Supabase وRow Level Security",
+"Loading dashboard…":"جارٍ تحميل لوحة التحكم…","Your inbox is empty.":"صندوق الوارد فارغ.","No matching contacts yet.":"لا توجد جهات اتصال مطابقة.","Activity will appear here as you manage requests.":"ستظهر الأنشطة هنا عند إدارة الطلبات.","New":"جديد","In progress":"قيد التنفيذ","Completed":"مكتمل","Delete":"حذف","Reply by email ↗":"الرد عبر البريد ↗","0 CONTACTS":"0 جهة اتصال","0 MESSAGES":"0 رسالة","Alerts enabled":"التنبيهات مفعّلة","Enable alerts":"تفعيل التنبيهات"
+};
+const reverseTranslations=Object.fromEntries(Object.entries(translations).map(([en,ar])=>[ar,en]));
+let currentLanguage=localStorage.getItem("az_language")==="ar"?"ar":"en";
+function translatePage(){
+ const dict=currentLanguage==="ar"?translations:reverseTranslations;
+ const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+ const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+ nodes.forEach(node=>{const raw=node.nodeValue,trim=raw.trim();if(dict[trim])node.nodeValue=raw.replace(trim,dict[trim]);});
+ document.querySelectorAll("input[placeholder],textarea[placeholder],button[aria-label]").forEach(el=>{
+  ["placeholder","aria-label"].forEach(attr=>{const val=el.getAttribute(attr);if(val&&dict[val])el.setAttribute(attr,dict[val]);});
+ });
+ document.documentElement.lang=currentLanguage==="ar"?"ar":"en";
+ document.documentElement.dir=currentLanguage==="ar"?"rtl":"ltr";
+ document.body.classList.toggle("arabic-mode",currentLanguage==="ar");
+ ["languageToggle","adminLanguageToggle"].forEach(id=>{const b=$(id);if(b)b.textContent=currentLanguage==="ar"?"English":"العربية";});
+}
+function toggleLanguage(){currentLanguage=currentLanguage==="en"?"ar":"en";localStorage.setItem("az_language",currentLanguage);translatePage();}
+$("languageToggle").addEventListener("click",toggleLanguage);
+$("adminLanguageToggle").addEventListener("click",toggleLanguage);
+
 let lastReadAt = localStorage.getItem(LAST_READ_KEY) || "";
 const say = (id, message, bad = false) => {
   const el = $(id); if (!el) return;
@@ -11,7 +47,7 @@ const ready = () => window.AZ_SUPABASE_URL && !window.AZ_SUPABASE_URL.startsWith
 const safeExternal = value => { try { const u = new URL(value); return ["https:","http:"].includes(u.protocol) ? u.href : null; } catch { return null; } };
 const escapeText = value => String(value ?? "");
 function setBusy(button, busy, text) { if (!button) return; button.disabled = busy; if (text) button.textContent = text; }
-async function init() {
+async function init() {\n  translatePage();
   $("year").textContent = new Date().getFullYear();
   $("heroYear").textContent = new Date().getFullYear();
   if (!ready() || !window.supabase) { $("connectionNotice").hidden = false; return; }
@@ -38,7 +74,7 @@ async function loadPublic() {
     $("displayLocation").textContent = (p.location || "QATAR").toUpperCase();
     if (p.headline) document.querySelector(".hero h1").setAttribute("aria-label", p.headline);
   }
-  renderPublicProjects(projectsRes.data || []);
+  renderPublicProjects(projectsRes.data || []);translatePage();
 }
 async function recordPageView() {
   try { const {error}=await db.rpc("record_page_view"); if(error) console.warn("Visit counter:",error.message); }
@@ -116,7 +152,7 @@ async function loadAdmin(){
   $("statVisits").textContent=viewsRes.error?"—":(total.toLocaleString()+(days.length===7?" · 7d":""));
   renderVisitChart(days);
   $("messageCount").textContent=messagesCache.length+" MESSAGES";
-  renderAdminProjects(projectsCache);renderMessages(messagesCache);renderContacts(messagesCache);renderActivity(activityRes.data||[]);
+  renderAdminProjects(projectsCache);renderMessages(messagesCache);renderContacts(messagesCache);renderActivity(activityRes.data||[]);translatePage();
   if(activityRes.error)console.warn("Activity log unavailable:",activityRes.error.message);
   if(!errors.length)say("adminStatus","Dashboard is up to date.");
 }
