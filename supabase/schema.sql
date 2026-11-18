@@ -87,3 +87,26 @@ grant execute on function public.record_page_view() to anon, authenticated;
 -- Allow visitors to submit contact messages without creating an account.
 grant insert on table public.messages to anon, authenticated;
 grant select, delete on table public.messages to authenticated;
+
+
+-- Request workflow and admin activity history.
+alter table public.messages
+  add column if not exists status text not null default 'new'
+  check (status in ('new','in_progress','completed'));
+
+create table if not exists public.activity_logs (
+  id uuid primary key default gen_random_uuid(),
+  actor_id uuid references auth.users(id) on delete set null,
+  action text not null,
+  details text not null default '',
+  created_at timestamptz not null default now()
+);
+alter table public.activity_logs enable row level security;
+drop policy if exists "Admin read activity logs" on public.activity_logs;
+create policy "Admin read activity logs" on public.activity_logs
+for select to authenticated using (public.is_admin());
+drop policy if exists "Admin insert activity logs" on public.activity_logs;
+create policy "Admin insert activity logs" on public.activity_logs
+for insert to authenticated with check (public.is_admin() and actor_id = (select auth.uid()));
+grant select, insert on public.activity_logs to authenticated;
+grant select, update on public.messages to authenticated;
