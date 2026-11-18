@@ -24,6 +24,8 @@ create policy "Read own role" on public.user_roles for select to authenticated u
 
 drop policy if exists "Public read profile" on public.profiles;
 create policy "Public read profile" on public.profiles for select to anon,authenticated using(true);
+drop policy if exists "Admin insert profile" on public.profiles;
+create policy "Admin insert profile" on public.profiles for insert to authenticated with check(public.is_admin());
 drop policy if exists "Admin update profile" on public.profiles;
 create policy "Admin update profile" on public.profiles for update to authenticated using(public.is_admin()) with check(public.is_admin());
 drop policy if exists "Public read projects" on public.projects;
