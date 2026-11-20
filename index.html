@@ -9,7 +9,7 @@
 <meta property="og:description" content="Build. Create. Innovate.">
 <title>Developer Aziz | Portfolio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="assets/css/style.css?v=20261120-12">
+<link rel="stylesheet" href="assets/css/style.css?v=20261120-13">
 </head>
 <body>
 <div id="maintenanceGate" class="maintenance-gate" hidden>
@@ -118,9 +118,11 @@
 
 <section class="admin-card team-admin-card" id="teamManager">
 <div class="card-heading"><div><div class="section-kicker">OWNER CONTROL</div><h2>Team & permissions</h2></div><span class="tiny-tag">OWNER ONLY</span></div>
-<p class="muted">Invite a teammate by email and choose exactly which areas they can manage. Invitations are sent by email.</p>
+<p class="muted">Create a teammate account with an email and temporary password, then choose exactly which areas they can manage.</p>
 <form id="teamInviteForm" class="admin-form">
 <label>Team member email<input id="teamEmail" type="email" required maxlength="254" placeholder="name@example.com"></label>
+<label>Temporary password<input id="teamPassword" type="password" required minlength="12" maxlength="72" autocomplete="new-password" placeholder="At least 12 characters"></label>
+<p class="muted">Create the account directly. Share the password with the teammate privately; they should change it after first sign-in.</p>
 <div class="permission-grid">
 <label><input type="checkbox" name="teamPermission" value="profile"> Profile settings</label>
 <label><input type="checkbox" name="teamPermission" value="projects"> Projects</label>
@@ -135,7 +137,7 @@
 <label><input type="checkbox" name="teamPermission" value="clients"> Client portal & files</label>
 <label><input type="checkbox" name="teamPermission" value="bugs"> Bug reports</label>
 </div>
-<button class="btn" type="submit">Send invitation ↗</button>
+<button class="btn" type="submit">Create account ↗</button>
 <p id="teamInviteStatus" class="form-status" aria-live="polite"></p>
 </form>
 <div class="card-heading team-list-heading"><h3>Current team</h3><button id="refreshTeam" class="small-action" type="button">Refresh</button></div>
@@ -201,6 +203,6 @@
 </section>
 <div id="connectionNotice" hidden>Supabase is not configured. Check the public project URL and publishable key.</div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="assets/js/config.js?v=20261120-12"></script>
-<script src="assets/js/app.js?v=20261120-12"></script>
+<script src="assets/js/config.js?v=20261120-13"></script>
+<script src="assets/js/app.js?v=20261120-13"></script>
 </body></html>
