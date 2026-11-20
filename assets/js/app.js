@@ -1,6 +1,6 @@
 (() => {
 const $ = id => document.getElementById(id);
-let db = null, projectsCache = [], messagesCache = [], currentImageUrl = null, inboxChannel = null, inboxPoll = null, maintenanceMode = false;
+let db = null, projectsCache = [], messagesCache = [], currentImageUrl = null, inboxChannel = null, inboxPoll = null, maintenanceMode = false, currentPermissions = [];
 const LAST_READ_KEY = "az_control_messages_last_read";
 const translations={
 "DEVELOPER ":"المطوّر ",
@@ -169,7 +169,13 @@ $("loginForm").addEventListener("submit",async e=>{
 });
 async function adminAccess(user) {
   const {data:role,error}=await db.from("user_roles").select("role").eq("user_id",user.id).maybeSingle();
-  if(error || !["owner","admin","staff"].includes(role?.role)){await db.auth.signOut();$("adminModal").hidden=false;return say("loginStatus","This account does not have administrator access.",true);}
+  if(error || !["owner","admin","staff","editor","support"].includes(role?.role)){await db.auth.signOut();$("adminModal").hidden=false;return say("loginStatus","This account does not have administrator access.",true);}
+  const {data:permissionRows}=await db.from("admin_permissions").select("permission").eq("user_id",user.id);
+  currentPermissions=role.role==="owner"?["profile","projects","messages","requests","blog","reviews","academy","store","maintenance","analytics","clients","bugs"]:(permissionRows||[]).map(x=>x.permission);
+  const accessMap={profile:"profileManager",projects:"projectManager",messages:"inboxManager",blog:"blogManager",maintenance:"maintenanceManager"};
+  Object.entries(accessMap).forEach(([permission,id])=>{const el=$(id);if(el)el.hidden=!currentPermissions.includes(permission);});
+  if($("teamManager"))$("teamManager").hidden=role.role!=="owner";
+  if($("statsVisits")?.closest(".stats-grid"))$("statsVisits").closest(".stats-grid").hidden=!currentPermissions.includes("analytics");
   $("adminModal").hidden=true;$("site").hidden=true;$("maintenanceGate").hidden=true;$("adminPanel").hidden=false;
   if($("teamManager"))$("teamManager").hidden=role.role!=="owner";
   await loadAdmin();
