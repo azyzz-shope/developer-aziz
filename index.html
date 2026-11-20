@@ -107,7 +107,7 @@
 <div class="admin-main">
 <div class="admin-welcome"><div><div class="section-kicker">DEVELOPER AZIZ / CONTROL CENTER</div><h1>Dashboard<span>.</span></h1><p class="muted">Manage your portfolio content from one place.</p></div><button id="refreshAdmin" class="btn btn-ghost" type="button">↻ Refresh data</button></div>
 <div id="adminStatus" class="admin-status" role="status" aria-live="polite"></div>
-<section class="admin-card maintenance-admin-card">
+<section id="maintenanceManager" class="admin-card maintenance-admin-card">
 <div class="card-heading"><div><div class="section-kicker">SYSTEM ACCESS</div><h2>Maintenance mode</h2></div><span class="tiny-tag">PUBLIC ACCESS</span></div>
 <p class="muted">When enabled, visitors see the maintenance screen. Administrators can still sign in and manage the site.</p>
 <label class="maintenance-toggle"><input id="maintenanceEnabled" type="checkbox"><span>Enable maintenance mode</span></label>
@@ -150,7 +150,7 @@
 <article class="stat-card"><span>LAST 7 DAYS</span><strong id="statVisitsWeek">—</strong><small>Recent page views</small></article>
 </div>
 <div class="admin-grid">
-<section class="admin-card">
+<section id="profileManager" class="admin-card">
 <div class="card-heading"><div><div class="section-kicker">01 / PERSONAL BRAND</div><h2>Profile settings</h2></div></div>
 <form id="profileForm" class="admin-form">
 <label>Display name<input id="editName" required maxlength="100"></label>
@@ -179,11 +179,11 @@
 <div id="visitChart" class="visit-chart"><p class="muted">Analytics will appear after setup.</p></div>
 <p class="analytics-note">Privacy-friendly counting: this site stores daily totals only, not visitor names, IP addresses or browsing profiles.</p>
 </section>
-<section class="admin-card projects-manager">
+<section id="projectManager" class="admin-card projects-manager">
 <div class="card-heading"><div><div class="section-kicker">03 / LIBRARY</div><h2>Manage projects</h2></div><input id="projectSearch" class="search-input" type="search" placeholder="Search projects…"></div>
 <div id="adminProjects" class="admin-list"><p class="muted">Loading projects…</p></div>
 </section>
-<section class="admin-card inbox-card">
+<section id="inboxManager" class="admin-card inbox-card">
 <div class="card-heading"><div><div class="section-kicker">04 / INBOX</div><h2>Messages from visitors</h2></div><div class="inbox-tools"><span id="messageCount" class="tiny-tag">0 MESSAGES</span><span id="unreadCount" class="unread-count" hidden>0 NEW</span><button id="enableNotifications" class="small-action" type="button">Enable alerts</button><button id="markMessagesRead" class="small-action" type="button">Mark read</button></div></div>
 <div id="adminMessages" class="message-list"><p class="muted">Loading messages…</p></div>
 </section>
@@ -192,7 +192,7 @@
 <section class="admin-card"><div class="card-heading"><div><div class="section-kicker">06 / ACTIVITY</div><h2>Activity log</h2></div><span class="tiny-tag">LATEST ACTIONS</span></div><div id="activityLog" class="admin-list"><p class="muted">Loading activity…</p></div></section>
 </div>
 <div class="admin-grid">
-<section class="admin-card"><div class="card-heading"><div><div class="section-kicker">07 / PUBLISHING</div><h2>Blog manager</h2></div></div>
+<section id="blogManager" class="admin-card"><div class="card-heading"><div><div class="section-kicker">07 / PUBLISHING</div><h2>Blog manager</h2></div></div>
 <form id="blogForm" class="admin-form"><input id="blogEditId" type="hidden"><label>Article title<input id="blogTitle" maxlength="140" required></label><label>Short summary<textarea id="blogSummary" rows="2" maxlength="300" required></textarea></label><label>Article content<textarea id="blogBody" rows="6" maxlength="10000" required></textarea></label><button class="btn" type="submit">Publish article ↗</button></form><div id="adminBlogList" class="admin-list"></div></section>
 <section class="admin-card"><div class="card-heading"><div><div class="section-kicker">08 / CLIENT EXPERIENCE</div><h2>Client portal & live chat</h2></div></div><p class="muted">Incoming requests and replies are managed through the secure inbox. Use the request status selector to keep clients updated; direct live chat and private tracking links require the next database integration.</p><a class="btn btn-ghost" href="#adminMessages">Open visitor inbox ↗</a></section>
 </div>
