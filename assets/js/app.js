@@ -1,6 +1,6 @@
 (() => {
 const $ = id => document.getElementById(id);
-let db = null, projectsCache = [], messagesCache = [], currentImageUrl = null, inboxChannel = null, inboxPoll = null;
+let db = null, projectsCache = [], messagesCache = [], currentImageUrl = null, inboxChannel = null, inboxPoll = null, maintenanceMode = false;
 const LAST_READ_KEY = "az_control_messages_last_read";
 const translations={
 "DEVELOPER ":"المطوّر ",
@@ -61,6 +61,13 @@ async function init() {
     if (!session && event === "SIGNED_OUT") hideAdmin();
   });
 }
+function applyMaintenance(settings){
+  maintenanceMode=!!settings?.maintenance_enabled;
+  const gate=$("maintenanceGate"),site=$("site");
+  if($("maintenanceMessage"))$("maintenanceMessage").textContent=settings?.maintenance_message||"The website is currently undergoing scheduled maintenance. Please check back soon.";
+  if(gate)gate.hidden=!maintenanceMode;
+  if(site)site.hidden=maintenanceMode;
+}
 async function loadPublic() {
   const [profileRes, projectsRes, blogRes, reviewsRes, academyRes, productsRes, statusRes] = await Promise.all([
     db.from("profiles").select("*").eq("id",1).maybeSingle(),
@@ -80,7 +87,7 @@ async function loadPublic() {
     $("displayLocation").textContent = (p.location || "QATAR").toUpperCase();
     if (p.headline) document.querySelector(".hero h1").setAttribute("aria-label", p.headline);
   }
-  renderPublicProjects(projectsRes.data || []);renderPublicBlog(blogRes.data||[]);renderReviews(reviewsRes.data||[]);renderCards("academyGrid",academyRes.data||[],"No lessons published yet.");renderCards("storeGrid",productsRes.data||[],"No digital products available yet.");renderSystemStatus(statusRes.data);translatePage();
+  applyMaintenance(statusRes.data);renderPublicProjects(projectsRes.data || []);renderPublicBlog(blogRes.data||[]);renderReviews(reviewsRes.data||[]);renderCards("academyGrid",academyRes.data||[],"No lessons published yet.");renderCards("storeGrid",productsRes.data||[],"No digital products available yet.");renderSystemStatus(statusRes.data);translatePage();
 }
 async function recordPageView() {
   try { const {error}=await db.rpc("record_page_view"); if(error) console.warn("Visit counter:",error.message); }
@@ -146,6 +153,7 @@ $("contactForm").addEventListener("submit", async e => {
   form.reset(); say("contactStatus","Message sent successfully. Thank you!");
 });
 function openLogin(){ $("adminModal").hidden=false; $("loginStatus").textContent=""; $("loginEmail").focus(); }
+if($("maintenanceAdminLogin"))$("maintenanceAdminLogin").addEventListener("click",openLogin);
 function closeLogin(){ $("adminModal").hidden=true; }
 $("openLogin").addEventListener("click",openLogin);
 $("closeLogin").addEventListener("click",closeLogin);
@@ -161,24 +169,26 @@ $("loginForm").addEventListener("submit",async e=>{
 async function adminAccess(user) {
   const {data:role,error}=await db.from("user_roles").select("role").eq("user_id",user.id).maybeSingle();
   if(error || role?.role!=="admin"){await db.auth.signOut();$("adminModal").hidden=false;return say("loginStatus","This account does not have administrator access.",true);}
-  $("adminModal").hidden=true;$("site").hidden=true;$("adminPanel").hidden=false;
+  $("adminModal").hidden=true;$("site").hidden=true;$("maintenanceGate").hidden=true;$("adminPanel").hidden=false;
   await loadAdmin();
   startInboxUpdates();
 }
-function hideAdmin(){ $("adminPanel").hidden=true; $("site").hidden=false; stopInboxUpdates(); }
+function hideAdmin(){ $("adminPanel").hidden=true; $("site").hidden=!maintenanceMode; $("maintenanceGate").hidden=!maintenanceMode; stopInboxUpdates(); }
 async function loadAdmin(){
   say("adminStatus","Loading dashboard…");
-  const [profileRes,projectRes,messageRes,viewsRes,activityRes,blogRes]=await Promise.all([
+  const [profileRes,projectRes,messageRes,viewsRes,activityRes,blogRes,maintenanceRes]=await Promise.all([
     db.from("profiles").select("*").eq("id",1).maybeSingle(),
     db.from("projects").select("*").order("sort_order",{ascending:true}).order("created_at",{ascending:false}),
     db.from("messages").select("*").order("created_at",{ascending:false}).limit(100),
     db.from("page_views").select("view_date,views").order("view_date",{ascending:false}).limit(7),
     db.from("activity_logs").select("*").order("created_at",{ascending:false}).limit(30),
-    db.from("blog_posts").select("*").order("created_at",{ascending:false}).limit(50)
+    db.from("blog_posts").select("*").order("created_at",{ascending:false}).limit(50),
+    db.from("system_status").select("*").eq("id",1).maybeSingle()
   ]);
   const errors=[profileRes.error,projectRes.error,messageRes.error].filter(Boolean);
   if(viewsRes.error) console.warn("Analytics unavailable:",viewsRes.error.message);
   if(errors.length){say("adminStatus","Some dashboard data could not be loaded: "+errors[0].message,true);}
+  if(maintenanceRes.data){applyMaintenance(maintenanceRes.data);$("maintenanceEnabled").checked=!!maintenanceRes.data.maintenance_enabled;$("maintenanceText").value=maintenanceRes.data.maintenance_message||"";}
   if(profileRes.data){const p=profileRes.data;$("editName").value=p.display_name||"";$("editHeadline").value=p.headline||"";$("editAbout").value=p.about||"";$("editLocation").value=p.location||"";$("editEmail").value=p.contact_email||"";}
   projectsCache=projectRes.data||[];messagesCache=messageRes.data||[];
   $("statProjects").textContent=projectsCache.length;
@@ -194,6 +204,18 @@ async function loadAdmin(){
   if(activityRes.error)console.warn("Activity log unavailable:",activityRes.error.message);
   if(!errors.length)say("adminStatus","Dashboard is up to date.");
 }
+$("saveMaintenance").addEventListener("click",async()=>{
+  const button=$("saveMaintenance");setBusy(button,true,"Saving…");
+  const enabled=$("maintenanceEnabled").checked;
+  const message=$("maintenanceText").value.trim()||"The website is currently undergoing scheduled maintenance. Please check back soon.";
+  const {error}=await db.from("system_status").update({maintenance_enabled:enabled,maintenance_message:message,updated_at:new Date().toISOString()}).eq("id",1);
+  setBusy(button,false,"Save maintenance settings ↗");
+  if(error){$("maintenanceAdminStatus").textContent="Could not save settings: "+error.message;return;}
+  applyMaintenance({maintenance_enabled:enabled,maintenance_message:message});
+  await logActivity("maintenance_mode",enabled?"Enabled maintenance mode":"Disabled maintenance mode");
+  $("maintenanceAdminStatus").textContent=enabled?"Maintenance mode is ON. Visitors will see the maintenance page.":"Maintenance mode is OFF. The public website is visible.";
+  say("adminStatus","Maintenance settings saved.");
+});
 $("refreshAdmin").addEventListener("click",loadAdmin);
 $("profileForm").addEventListener("submit",async e=>{
   e.preventDefault();const button=e.currentTarget.querySelector("button[type=submit]");setBusy(button,true,"Saving…");
