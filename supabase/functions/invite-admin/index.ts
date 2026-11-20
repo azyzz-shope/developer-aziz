@@ -19,6 +19,7 @@ Deno.serve(async (req) => {
     if (owner?.role !== "owner") return new Response(JSON.stringify({ error: "Owner access required" }), { status: 403, headers: { ...cors, "Content-Type": "application/json" } });
     const body = await req.json();
     const email = String(body.email || "").trim().toLowerCase();
+    const password = String(body.password || "");
     const permissions = Array.isArray(body.permissions) ? [...new Set(body.permissions.filter((p: string) => allowed.has(p)))] : [];
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || permissions.length === 0) return new Response(JSON.stringify({ error: "Enter a valid email and at least one permission." }), { status: 400, headers: { ...cors, "Content-Type": "application/json" } });
     const { data, error } = await admin.auth.admin.inviteUserByEmail(email, { redirectTo: url });
