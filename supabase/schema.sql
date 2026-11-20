@@ -367,3 +367,19 @@ drop policy if exists "Admins update system status" on public.system_status;
 create policy "Admins update system status" on public.system_status for update to authenticated using(public.has_permission('maintenance')) with check(public.has_permission('maintenance'));
 drop policy if exists "Admins read security events" on public.security_events;
 create policy "Admins read security events" on public.security_events for select to authenticated using(public.has_permission('analytics'));
+
+
+-- Tighten and complete permission-specific read policies.
+alter table public.user_roles drop constraint if exists user_roles_role_check;
+alter table public.user_roles add constraint user_roles_role_check check(role in ('owner','admin','staff','editor','support'));
+create or replace function public.is_admin() returns boolean language sql stable security definer set search_path='' as $$
+ select exists(select 1 from public.user_roles where user_id=(select auth.uid()) and role in ('owner','admin'));
+$$;
+drop policy if exists "Public read published blog" on public.blog_posts;
+create policy "Public read published blog" on public.blog_posts for select to anon,authenticated using(published or public.has_permission('blog'));
+drop policy if exists "Public read approved reviews" on public.reviews;
+create policy "Public read approved reviews" on public.reviews for select to anon,authenticated using(approved or public.has_permission('reviews'));
+drop policy if exists "Public read published lessons" on public.academy_lessons;
+create policy "Public read published lessons" on public.academy_lessons for select to anon,authenticated using(published or public.has_permission('academy'));
+drop policy if exists "Public read published products" on public.digital_products;
+create policy "Public read published products" on public.digital_products for select to anon,authenticated using(published or public.has_permission('store'));
