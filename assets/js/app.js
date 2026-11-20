@@ -169,12 +169,62 @@ $("loginForm").addEventListener("submit",async e=>{
 });
 async function adminAccess(user) {
   const {data:role,error}=await db.from("user_roles").select("role").eq("user_id",user.id).maybeSingle();
-  if(error || role?.role!=="admin"){await db.auth.signOut();$("adminModal").hidden=false;return say("loginStatus","This account does not have administrator access.",true);}
+  if(error || !["owner","admin","staff"].includes(role?.role)){await db.auth.signOut();$("adminModal").hidden=false;return say("loginStatus","This account does not have administrator access.",true);}
   $("adminModal").hidden=true;$("site").hidden=true;$("maintenanceGate").hidden=true;$("adminPanel").hidden=false;
+  if($("teamManager"))$("teamManager").hidden=role.role!=="owner";
   await loadAdmin();
+  if(role.role==="owner")await loadTeam();
   startInboxUpdates();
 }
 function hideAdmin(){ $("adminPanel").hidden=true; $("site").hidden=!maintenanceMode; $("maintenanceGate").hidden=!maintenanceMode; stopInboxUpdates(); }
+
+async function loadTeam(){
+ const root=$("teamMembers");if(!root)return;
+ root.replaceChildren();
+ const {data,error}=await db.rpc("owner_list_team");
+ if(error){root.textContent="Team list unavailable: "+error.message;return;}
+ (data||[]).forEach(member=>{
+  const row=document.createElement("div");row.className="team-member-row";
+  const info=document.createElement("div");const email=document.createElement("b");email.textContent=member.email||member.user_id;
+  const role=document.createElement("small");role.textContent=member.role==="owner"?"OWNER":"TEAM MEMBER";info.append(email,role);
+  const actions=document.createElement("div");actions.className="team-member-actions";
+  const edit=document.createElement("button");edit.className="small-action";edit.type="button";edit.textContent="Edit access";
+  edit.addEventListener("click",async()=>{
+   const current=member.permissions||[];
+   const chosen=prompt("Enter permissions separated by commas:\n"+["profile","projects","messages","requests","blog","reviews","academy","store","maintenance","analytics","clients","bugs"].join(", ")+"\n\nCurrent: "+current.join(", "));
+   if(chosen===null)return;
+   const list=chosen.split(",").map(x=>x.trim()).filter(x=>["profile","projects","messages","requests","blog","reviews","academy","store","maintenance","analytics","clients","bugs"].includes(x));
+   const {error}=await db.rpc("owner_set_team_permissions",{p_user_id:member.user_id,p_permissions:list});
+   if(error)return say("teamInviteStatus","Could not update permissions: "+error.message,true);
+   say("teamInviteStatus","Permissions updated.");await loadTeam();
+  });
+  const remove=document.createElement("button");remove.className="small-action danger";remove.type="button";remove.textContent="Remove access";
+  remove.disabled=member.role==="owner";
+  remove.addEventListener("click",async()=>{
+   if(!confirm("Remove this member's dashboard access?"))return;
+   const {error}=await db.rpc("owner_remove_team_member",{p_user_id:member.user_id});
+   if(error)return say("teamInviteStatus","Could not remove access: "+error.message,true);
+   await loadTeam();
+  });
+  actions.append(edit,remove);row.append(info,actions);root.append(row);
+ });
+ if(!(data||[]).length)root.textContent="No team members yet.";
+}
+$("teamInviteForm")?.addEventListener("submit",async e=>{
+ e.preventDefault();const button=e.currentTarget.querySelector("button[type=submit]");
+ const email=$("teamEmail").value.trim().toLowerCase();
+ const selected=[...document.querySelectorAll('input[name="teamPermission"]:checked')].map(x=>x.value);
+ if(!selected.length)return say("teamInviteStatus","Choose at least one permission.",true);
+ setBusy(button,true,"Sending invitation…");
+ const {data,error}=await db.functions.invoke("invite-admin",{body:{email,permissions:selected}});
+ setBusy(button,false,"Send invitation ↗");
+ if(error)return say("teamInviteStatus","Invitation failed: "+error.message,true);
+ $("teamEmail").value="";document.querySelectorAll('input[name="teamPermission"]').forEach(x=>x.checked=false);
+ say("teamInviteStatus","Invitation sent. The teammate can accept it by email.");
+ await loadTeam();
+});
+$("refreshTeam")?.addEventListener("click",loadTeam);
+
 async function loadAdmin(){
   say("adminStatus","Loading dashboard…");
   const [profileRes,projectRes,messageRes,viewsRes,activityRes,blogRes,maintenanceRes]=await Promise.all([
