@@ -1,7 +1,29 @@
 -- Owner-managed team accounts and granular permissions.
 alter table public.user_roles drop constraint if exists user_roles_role_check;
 alter table public.user_roles add constraint user_roles_role_check check(role in ('owner','admin','staff'));
-update public.user_roles set role='owner' where role='admin';
+-- IMPORTANT: replace this email with the email of YOUR existing admin account.
+-- This promotes only your account to owner; other admins are not promoted.
+update public.user_roles
+set role='owner'
+where user_id = (
+  select id from auth.users
+  where lower(email) = lower('YOUR_ADMIN_EMAIL')
+)
+and role in ('admin','owner');
+
+-- Stop safely if the email was not found in the existing admin accounts.
+do $
+begin
+  if not exists (
+    select 1
+    from public.user_roles r
+    join auth.users u on u.id = r.user_id
+    where lower(u.email) = lower('YOUR_ADMIN_EMAIL')
+      and r.role = 'owner'
+  ) then
+    raise exception 'Owner account not found. Check YOUR_ADMIN_EMAIL and ensure this user already has an admin role.';
+  end if;
+end $;
 
 create table if not exists public.admin_permissions(
  user_id uuid not null references auth.users(id) on delete cascade,
