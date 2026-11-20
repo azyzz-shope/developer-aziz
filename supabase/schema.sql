@@ -241,3 +241,7 @@ alter table public.security_events enable row level security;
 drop policy if exists "Admins read security events" on public.security_events;
 create policy "Admins read security events" on public.security_events for select to authenticated using(public.is_admin());
 grant select on public.security_events to authenticated;
+
+-- Maintenance mode: visitors see a maintenance screen while admins retain dashboard access.
+alter table public.system_status add column if not exists maintenance_enabled boolean not null default false;
+alter table public.system_status add column if not exists maintenance_message text not null default 'The website is currently undergoing scheduled maintenance. Please check back soon.';
