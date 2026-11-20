@@ -233,14 +233,16 @@ async function loadTeam(){
 $("teamInviteForm")?.addEventListener("submit",async e=>{
  e.preventDefault();const button=e.currentTarget.querySelector("button[type=submit]");
  const email=$("teamEmail").value.trim().toLowerCase();
+ const password=$("teamPassword").value;
  const selected=[...document.querySelectorAll('input[name="teamPermission"]:checked')].map(x=>x.value);
  if(!selected.length)return say("teamInviteStatus","Choose at least one permission.",true);
- setBusy(button,true,"Sending invitation…");
- const {data,error}=await db.functions.invoke("invite-admin",{body:{email,permissions:selected}});
- setBusy(button,false,"Send invitation ↗");
- if(error)return say("teamInviteStatus","Invitation failed: "+error.message,true);
- $("teamEmail").value="";document.querySelectorAll('input[name="teamPermission"]').forEach(x=>x.checked=false);
- say("teamInviteStatus","Invitation sent. The teammate can accept it by email.");
+ if(password.length<12)return say("teamInviteStatus","Use a temporary password with at least 12 characters.",true);
+ setBusy(button,true,"Creating account…");
+ const {data,error}=await db.functions.invoke("invite-admin",{body:{email,password,permissions:selected}});
+ setBusy(button,false,"Create account ↗");
+ if(error)return say("teamInviteStatus","Account creation failed: "+error.message,true);
+ $("teamEmail").value="";$("teamPassword").value="";document.querySelectorAll('input[name="teamPermission"]').forEach(x=>x.checked=false);
+ say("teamInviteStatus","Account created and permissions assigned. Share the temporary password privately.");
  await loadTeam();
 });
 $("refreshTeam")?.addEventListener("click",loadTeam);
