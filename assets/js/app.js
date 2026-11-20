@@ -65,8 +65,9 @@ function applyMaintenance(settings){
   maintenanceMode=!!settings?.maintenance_enabled;
   const gate=$("maintenanceGate"),site=$("site");
   if($("maintenanceMessage"))$("maintenanceMessage").textContent=settings?.maintenance_message||"The website is currently undergoing scheduled maintenance. Please check back soon.";
-  if(gate)gate.hidden=!maintenanceMode;
-  if(site)site.hidden=maintenanceMode;
+  const adminOpen=!!$("adminPanel")&&!$("adminPanel").hidden;
+  if(gate)gate.hidden=!maintenanceMode||adminOpen;
+  if(site)site.hidden=maintenanceMode||adminOpen;
 }
 async function loadPublic() {
   const [profileRes, projectsRes, blogRes, reviewsRes, academyRes, productsRes, statusRes] = await Promise.all([
