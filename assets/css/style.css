@@ -19,3 +19,5 @@ body.arabic-mode .services-grid,body.arabic-mode .blog-grid,body.arabic-mode .te
 
 /* Owner team manager */
 .team-admin-card{margin:24px 0}.team-admin-card[hidden]{display:none!important}.permission-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:14px 0 20px}.permission-grid label{display:flex;align-items:center;gap:9px;padding:11px;border:1px solid #34313a;border-radius:9px;color:#ddd;font-size:.9rem}.permission-grid input{accent-color:#ff7185;width:17px;height:17px}.team-list-heading{margin-top:28px}.team-member-row{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid #302d35}.team-member-row small{display:block;color:#a7a1ad;margin-top:5px}.team-member-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+.team-permission-editor{flex:1 0 100%;margin-top:12px;padding:16px;border:1px solid #4a3540;border-radius:10px;background:#0c0c10}.team-permission-editor>.permission-grid{margin:12px 0}.team-permission-editor .permission-grid label{font-size:.82rem}
