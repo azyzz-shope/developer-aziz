@@ -12,6 +12,17 @@
 <link rel="stylesheet" href="assets/css/style.css?v=20261118-11">
 </head>
 <body>
+<div id="maintenanceGate" class="maintenance-gate" hidden>
+  <div class="maintenance-card">
+    <div class="maintenance-mark">AZ<span>.</span></div>
+    <div class="section-kicker">DEVELOPER AZIZ / SYSTEM NOTICE</div>
+    <h1>WE'LL BE <em>BACK SOON.</em></h1>
+    <p id="maintenanceMessage">The website is currently undergoing scheduled maintenance. Please check back soon.</p>
+    <div class="maintenance-indicator"><i></i> MAINTENANCE MODE ACTIVE</div>
+    <button id="maintenanceAdminLogin" class="btn" type="button">Administrator sign in ↗</button>
+  </div>
+</div>
+
 <div id="site">
 <header class="topbar">
 <a class="brand" href="#home">DEVELOPER <b>AZIZ.</b></a>
@@ -96,6 +107,15 @@
 <div class="admin-main">
 <div class="admin-welcome"><div><div class="section-kicker">DEVELOPER AZIZ / CONTROL CENTER</div><h1>Dashboard<span>.</span></h1><p class="muted">Manage your portfolio content from one place.</p></div><button id="refreshAdmin" class="btn btn-ghost" type="button">↻ Refresh data</button></div>
 <div id="adminStatus" class="admin-status" role="status" aria-live="polite"></div>
+<section class="admin-card maintenance-admin-card">
+<div class="card-heading"><div><div class="section-kicker">SYSTEM ACCESS</div><h2>Maintenance mode</h2></div><span class="tiny-tag">PUBLIC ACCESS</span></div>
+<p class="muted">When enabled, visitors see the maintenance screen. Administrators can still sign in and manage the site.</p>
+<label class="maintenance-toggle"><input id="maintenanceEnabled" type="checkbox"><span>Enable maintenance mode</span></label>
+<label class="admin-form">Maintenance message<textarea id="maintenanceText" rows="3" maxlength="500">The website is currently undergoing scheduled maintenance. Please check back soon.</textarea></label>
+<button id="saveMaintenance" class="btn" type="button">Save maintenance settings ↗</button>
+<p id="maintenanceAdminStatus" class="form-status" aria-live="polite"></p>
+</section>
+
 <div class="stats-grid">
 <article class="stat-card"><span>PROJECTS</span><strong id="statProjects">—</strong><small>Published work</small></article>
 <article class="stat-card"><span>MESSAGES</span><strong id="statMessages">—</strong><small>Inbox total</small></article>
