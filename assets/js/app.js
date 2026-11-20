@@ -195,14 +195,28 @@ async function loadTeam(){
   const role=document.createElement("small");role.textContent=member.role==="owner"?"OWNER":"TEAM MEMBER";info.append(email,role);
   const actions=document.createElement("div");actions.className="team-member-actions";
   const edit=document.createElement("button");edit.className="small-action";edit.type="button";edit.textContent="Edit access";
-  edit.addEventListener("click",async()=>{
-   const current=member.permissions||[];
-   const chosen=prompt("Enter permissions separated by commas:\n"+["profile","projects","messages","requests","blog","reviews","academy","store","maintenance","analytics","clients","bugs"].join(", ")+"\n\nCurrent: "+current.join(", "));
-   if(chosen===null)return;
-   const list=chosen.split(",").map(x=>x.trim()).filter(x=>["profile","projects","messages","requests","blog","reviews","academy","store","maintenance","analytics","clients","bugs"].includes(x));
-   const {error}=await db.rpc("owner_set_team_permissions",{p_user_id:member.user_id,p_permissions:list});
-   if(error)return say("teamInviteStatus","Could not update permissions: "+error.message,true);
-   say("teamInviteStatus","Permissions updated.");await loadTeam();
+  edit.addEventListener("click",()=>{
+   const existing=root.querySelector("[data-permission-editor]");
+   if(existing)existing.remove();
+   const editor=document.createElement("form");editor.dataset.permissionEditor="true";editor.className="team-permission-editor";
+   const title=document.createElement("b");title.textContent="Choose permissions";
+   const grid=document.createElement("div");grid.className="permission-grid";
+   const choices=[["profile","Profile settings"],["projects","Projects"],["messages","Visitor messages"],["requests","Service requests"],["blog","Blog"],["reviews","Reviews"],["academy","AZ Academy"],["store","Digital Store"],["maintenance","Maintenance mode"],["analytics","Analytics"],["clients","Client portal & files"],["bugs","Bug reports"]];
+   choices.forEach(([value,label])=>{
+    const wrap=document.createElement("label");const input=document.createElement("input");input.type="checkbox";input.value=value;input.checked=(member.permissions||[]).includes(value);
+    const caption=document.createElement("span");caption.textContent=label;wrap.append(input,caption);grid.append(wrap);
+   });
+   const save=document.createElement("button");save.className="btn";save.type="submit";save.textContent="Save permissions";
+   const cancel=document.createElement("button");cancel.className="small-action";cancel.type="button";cancel.textContent="Cancel";cancel.addEventListener("click",()=>editor.remove());
+   const actions=document.createElement("div");actions.className="team-member-actions";actions.append(save,cancel);
+   editor.append(title,grid,actions);row.append(editor);
+   editor.addEventListener("submit",async event=>{
+    event.preventDefault();save.disabled=true;save.textContent="Saving…";
+    const list=[...grid.querySelectorAll('input[type="checkbox"]:checked')].map(input=>input.value);
+    const {error}=await db.rpc("owner_set_team_permissions",{p_user_id:member.user_id,p_permissions:list});
+    if(error){save.disabled=false;save.textContent="Save permissions";return say("teamInviteStatus","Could not update permissions: "+error.message,true);}
+    say("teamInviteStatus","Permissions updated.");await loadTeam();
+   });
   });
   const remove=document.createElement("button");remove.className="small-action danger";remove.type="button";remove.textContent="Remove access";
   remove.disabled=member.role==="owner";
