@@ -116,6 +116,31 @@
 <p id="maintenanceAdminStatus" class="form-status" aria-live="polite"></p>
 </section>
 
+<section class="admin-card team-admin-card" id="teamManager">
+<div class="card-heading"><div><div class="section-kicker">OWNER CONTROL</div><h2>Team & permissions</h2></div><span class="tiny-tag">OWNER ONLY</span></div>
+<p class="muted">Invite a teammate by email and choose exactly which areas they can manage. Invitations are sent by email.</p>
+<form id="teamInviteForm" class="admin-form">
+<label>Team member email<input id="teamEmail" type="email" required maxlength="254" placeholder="name@example.com"></label>
+<div class="permission-grid">
+<label><input type="checkbox" name="teamPermission" value="profile"> Profile settings</label>
+<label><input type="checkbox" name="teamPermission" value="projects"> Projects</label>
+<label><input type="checkbox" name="teamPermission" value="messages"> Visitor messages</label>
+<label><input type="checkbox" name="teamPermission" value="requests"> Service requests</label>
+<label><input type="checkbox" name="teamPermission" value="blog"> Blog</label>
+<label><input type="checkbox" name="teamPermission" value="reviews"> Reviews</label>
+<label><input type="checkbox" name="teamPermission" value="academy"> AZ Academy</label>
+<label><input type="checkbox" name="teamPermission" value="store"> Digital Store</label>
+<label><input type="checkbox" name="teamPermission" value="maintenance"> Maintenance mode</label>
+<label><input type="checkbox" name="teamPermission" value="analytics"> Analytics</label>
+<label><input type="checkbox" name="teamPermission" value="clients"> Client portal & files</label>
+<label><input type="checkbox" name="teamPermission" value="bugs"> Bug reports</label>
+</div>
+<button class="btn" type="submit">Send invitation ↗</button>
+<p id="teamInviteStatus" class="form-status" aria-live="polite"></p>
+</form>
+<div class="card-heading team-list-heading"><h3>Current team</h3><button id="refreshTeam" class="small-action" type="button">Refresh</button></div>
+<div id="teamMembers" class="admin-list"><p class="muted">Loading team…</p></div>
+</section>
 <div class="stats-grid">
 <article class="stat-card"><span>PROJECTS</span><strong id="statProjects">—</strong><small>Published work</small></article>
 <article class="stat-card"><span>MESSAGES</span><strong id="statMessages">—</strong><small>Inbox total</small></article>
